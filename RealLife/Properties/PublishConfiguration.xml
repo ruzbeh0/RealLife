@@ -45,7 +45,7 @@ This section has a few options to configure education:
 * Fixed Education Infoview calculation to consider minimum shool age for children
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
-	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/Time2Work" />
+	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />
 	<ExternalLink Type="discord" Url="https://discord.com/channels/1024242828114673724/1270106414337097868" />
 	<ExternalLink Type="paypal" Url="https://www.paypal.com/paypalme/ruzbeh0" />
 	<ExternalLink Type="ko-fi" Url="https://ko-fi.com/ruzbeh0" />
