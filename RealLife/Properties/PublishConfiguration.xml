@@ -1,0 +1,52 @@
+﻿<Publish>
+	<!--Id must be set in order to update existed mod. it is not required for publishing mod for the first time-->
+	<ModId Value="86868" />
+	<!--Name of the mod to display to players-->
+	<DisplayName Value="Real Life" />
+	<!--Short description of the mod-->
+	<ShortDescription Value="This mod allows you to configure the age that cims move from one life stage to the other." />
+	<!--Long description of the mod. Single line or multi line. Supports minimal markdown subset-->
+	<!--LongDescription Value="This is a long description" /-->
+	<LongDescription>
+This mod has a few options to configure the age that cims move from one life stage to the other. It also has options to configure their education.
+
+## Age Settings
+
+This setting menu allows you to configure some age settings:
+
+* **Child School Start Age:** The age that children will start going to Elementary School.
+* **Child Age Limit:** The age that children will become teenagers.
+* **Teen Age Limit:** The age that teenagers will become adults.
+* **Adult Retirement Age:** The age that adults will retire and become elderly.
+* **Female Life Expectancy:** The average age that women are likely to die.
+* **Male Life Expectancy:** The average age that men are likely to die.
+
+## Education Settings
+
+This section has a few options to configure education:
+
+* **Number of years in College:** The number of years that cims will stay in College.
+* **Number of years in University:** The number of years that cims will stay in University.
+	</LongDescription>
+	<!--Thumbnail-->
+	<Thumbnail Value="Properties/Thumbnail.png" />
+	<!--Screenshot, can be set multiple times-->
+	<Screenshot Value="Properties/menu1.jpg" />
+	<Screenshot Value="Properties/menu2.jpg" />
+	<!--Tag, can be set multiple times-->
+	<Tag Value="" />
+	<!--Link to the forum post where the mod can be discussed-->
+	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
+	<!--Version of the mod-->
+	<ModVersion Value="0.1.1" />
+	<!--Recommended version of the base game to use the mod-->
+	<GameVersion Value="1.1.*" />
+	<ChangeLog>
+* Fixed Education Infoview calculation to consider minimum shool age for children
+	</ChangeLog>
+	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
+	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/Time2Work" />
+	<ExternalLink Type="discord" Url="https://discord.com/channels/1024242828114673724/1270106414337097868" />
+	<ExternalLink Type="paypal" Url="https://www.paypal.com/paypalme/ruzbeh0" />
+	<ExternalLink Type="ko-fi" Url="https://ko-fi.com/ruzbeh0" />
+</Publish>
