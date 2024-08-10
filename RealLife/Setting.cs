@@ -35,6 +35,13 @@ namespace RealLife
             male_life_expectancy = 78;
             years_in_college = 4;
             years_in_university = 3;
+            elementary_grad_prob = 100;
+            high_grad_prob = 95;
+            college_grad_prob = 90;
+            university_grad_prob = 85;
+            enter_high_school_prob = 88;
+            adult_enter_high_school_prob = 10;
+            worker_continue_education = 10;
         }
 
         [SettingsUISlider(min = 0, max = 10, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
@@ -68,6 +75,34 @@ namespace RealLife
         [SettingsUISlider(min = 1, max = 6, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
         [SettingsUISection(EducationSection, EducationGroup)]
         public int years_in_university { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int elementary_grad_prob { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int high_grad_prob { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int college_grad_prob { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int university_grad_prob { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int enter_high_school_prob { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int adult_enter_high_school_prob { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, EducationGroup)]
+        public int worker_continue_education { get; set; }
     }  
 
     public class LocaleEN : IDictionarySource
@@ -104,6 +139,20 @@ namespace RealLife
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.years_in_college)), $"Number of years that it takes for a cim to graduate college. A year is considered one in game day." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.years_in_university)), "Number of years in university" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.years_in_university)), $"Number of years that it takes for a cim to graduate university. A year is considered one in game day." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.elementary_grad_prob)), "Elementary School Graduation Probability" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.elementary_grad_prob)), $"Probability of graduating elementary school. Vanilla is 100%" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.high_grad_prob)), "High School Graduation Probability" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.high_grad_prob)), $"Probability of graduating high school. Vanilla is 60%" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.college_grad_prob)), "College Graduation Probability" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.college_grad_prob)), $"Probability of graduating college. Vanilla is 90%" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.university_grad_prob)), "University Graduation Probability" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.university_grad_prob)), $"Probability of graduating university. Vanilla is 70%" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.enter_high_school_prob)), "Probability of Entering High School" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.enter_high_school_prob)), $"Percentage of citizens that enter High School." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.adult_enter_high_school_prob)), "Probability of Adults Entering High School" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.adult_enter_high_school_prob)), $"Percentage of adults that enter High School." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.worker_continue_education)), "Probability of Workers continuing Education" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.worker_continue_education)), $"Percentage of workers that will continue their education." },
             };
         }
 

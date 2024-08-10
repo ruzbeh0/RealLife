@@ -48,13 +48,18 @@ namespace RealLife.Systems
           DynamicBuffer<CityModifier> modifiers,
           float efficiency,
           TimeData timeData,
-          int adult_age_limit)
+          int adult_age_limit,
+          float elementary_grad_prob,
+          float high_grad_prob,
+          float college_grad_prob,
+          float university_grad_prob
+          )
         {
             float ageInDays = citizen.GetAgeInDays(simulationFrame, timeData);
             float studyWillingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
             int failedEducationCount = citizen.GetFailedEducationCount();
-            float graduationProbability = RealLifeGraduationSystem.GetGraduationProbability(level, (int)citizen.m_WellBeing, schoolData, modifiers, studyWillingness, efficiency);
-            return RealLifeGraduationSystem.GetDropoutProbability(level, commute, fee, wealth, ageInDays, studyWillingness, failedEducationCount, graduationProbability, ref economyParameters, adult_age_limit);
+            float graduationProbability = RealLifeGraduationSystem.GetGraduationProbability(level, (int)citizen.m_WellBeing, schoolData, modifiers, studyWillingness, efficiency, elementary_grad_prob, high_grad_prob, college_grad_prob, university_grad_prob);
+            return RealLifeGraduationSystem.GetDropoutProbability(level, commute, fee, wealth, ageInDays, studyWillingness, failedEducationCount, graduationProbability, ref economyParameters, adult_age_limit, elementary_grad_prob, high_grad_prob, college_grad_prob, university_grad_prob);
         }
 
         public static float GetDropoutProbability(
@@ -67,7 +72,11 @@ namespace RealLife.Systems
           int failedEducationCount,
           float graduationProbability,
           ref EconomyParameterData economyParameters,
-          int adult_age_limit)
+          int adult_age_limit,
+          float elementary_grad_prob,
+          float high_grad_prob,
+          float college_grad_prob,
+          float university_grad_prob)
         {
             int y = 4 - failedEducationCount;
             float s = math.pow(1f - graduationProbability, (float)y);
@@ -90,11 +99,15 @@ namespace RealLife.Systems
           SchoolData schoolData,
           DynamicBuffer<CityModifier> modifiers,
           float studyWillingness,
-          float efficiency)
+          float efficiency,
+          float elementary_grad_prob,
+          float high_grad_prob,
+          float college_grad_prob,
+          float university_grad_prob)
         {
             float2 modifier1 = CityUtils.GetModifier(modifiers, CityModifierType.CollegeGraduation);
             float2 modifier2 = CityUtils.GetModifier(modifiers, CityModifierType.UniversityGraduation);
-            return RealLifeGraduationSystem.GetGraduationProbability(level, wellbeing, schoolData.m_GraduationModifier, modifier1, modifier2, studyWillingness, efficiency);
+            return RealLifeGraduationSystem.GetGraduationProbability(level, wellbeing, schoolData.m_GraduationModifier, modifier1, modifier2, studyWillingness, efficiency, elementary_grad_prob, high_grad_prob, college_grad_prob, university_grad_prob);
         }
 
         public static float GetGraduationProbability(
@@ -104,7 +117,11 @@ namespace RealLife.Systems
           float2 collegeModifier,
           float2 uniModifier,
           float studyWillingness,
-          float efficiency)
+          float efficiency,
+          float elementary_grad_prob,
+          float high_grad_prob,
+          float college_grad_prob,
+          float university_grad_prob)
         {
             if ((double)efficiency <= 1.0 / 1000.0)
                 return 0.0f;
@@ -113,17 +130,17 @@ namespace RealLife.Systems
             switch (level)
             {
                 case 1:
-                    num2 = math.smoothstep(0.0f, 1f, (float)(0.60000002384185791 * (double)num1 + 0.40999999642372131));
+                    num2 = (elementary_grad_prob/100f)*math.smoothstep(0.0f, 1f, (float)(0.60000002384185791 * (double)num1 + 0.40999999642372131));
                     break;
                 case 2:
-                    num2 = 0.6f * math.log((float)(2.5999999046325684 * (double)num1 + 1.1000000238418579));
+                    num2 = (high_grad_prob / 100f) * math.log((float)(2.5999999046325684 * (double)num1 + 1.1000000238418579));
                     break;
                 case 3:
-                    float num3 = 90f * math.log((float)(1.6000000238418579 * (double)num1 + 1.0)) + collegeModifier.x;
+                    float num3 = (college_grad_prob / 100f) * math.log((float)(1.6000000238418579 * (double)num1 + 1.0)) + collegeModifier.x;
                     num2 = (num3 + num3 * collegeModifier.y) / 100f;
                     break;
                 case 4:
-                    float num4 = 70f * num1 + uniModifier.x;
+                    float num4 = (university_grad_prob / 100f) * num1 + uniModifier.x;
                     num2 = (num4 + num4 * uniModifier.y) / 100f;
                     break;
                 default:
@@ -188,7 +205,11 @@ namespace RealLife.Systems
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
                 adult_age_limit = Mod.m_Setting.adult_age_limit,
                 years_in_college = Mod.m_Setting.years_in_college,
-                years_in_university = Mod.m_Setting.years_in_university
+                years_in_university = Mod.m_Setting.years_in_university,
+                elementary_grad_probability = Mod.m_Setting.elementary_grad_prob,
+                high_grad_probability = Mod.m_Setting.high_grad_prob,
+                college_grad_probability = Mod.m_Setting.college_grad_prob,
+                university_grad_probability = Mod.m_Setting.university_grad_prob
             };
 
             this.Dependency = jobData.ScheduleParallel<RealLifeGraduationSystem.GraduationJob>(this.m_StudentQuery, this.Dependency);
@@ -275,6 +296,10 @@ namespace RealLife.Systems
             public int adult_age_limit;
             public int years_in_college;
             public int years_in_university;
+            public float elementary_grad_probability;
+            public float high_grad_probability;
+            public float college_grad_probability;
+            public float university_grad_probability;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -319,7 +344,7 @@ namespace RealLife.Systems
                             int wellBeing = (int)local.m_WellBeing;
                             float studyWillingness = local.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
                             float efficiency = BuildingUtils.GetEfficiency(school, ref this.m_BuildingEfficiencies);
-                            float graduationProbability = RealLifeGraduationSystem.GetGraduationProbability(num1, wellBeing, schoolData, cityModifier, studyWillingness, efficiency);
+                            float graduationProbability = RealLifeGraduationSystem.GetGraduationProbability(num1, wellBeing, schoolData, cityModifier, studyWillingness, efficiency, elementary_grad_probability, high_grad_probability, college_grad_probability, university_grad_probability);
                             if (this.m_DebugFastGraduationLevel == 0 || this.m_DebugFastGraduationLevel == num1)
                             {
                                 if (this.m_DebugFastGraduationLevel == num1 || (double)random.NextFloat() < (double)graduationProbability)
@@ -359,7 +384,7 @@ namespace RealLife.Systems
                                     {
                                         local.SetFailedEducationCount(failedEducationCount + 1);
                                         float fee = ServiceFeeSystem.GetFee(ServiceFeeSystem.GetEducationResource((int)student.m_Level), this.m_Fees[this.m_City]);
-                                        float num2 = 1f - math.pow(math.saturate(1f - RealLifeGraduationSystem.GetDropoutProbability(local, (int)student.m_Level, student.m_LastCommuteTime, fee, 0, this.m_SimulationFrame, ref this.m_EconomyParameters, schoolData, cityModifier, efficiency, this.m_TimeData, adult_age_limit)), 32f);
+                                        float num2 = 1f - math.pow(math.saturate(1f - RealLifeGraduationSystem.GetDropoutProbability(local, (int)student.m_Level, student.m_LastCommuteTime, fee, 0, this.m_SimulationFrame, ref this.m_EconomyParameters, schoolData, cityModifier, efficiency, this.m_TimeData, adult_age_limit, elementary_grad_probability, high_grad_probability, college_grad_probability, university_grad_probability)), 32f);
                                         if ((double)random.NextFloat() < (double)num2)
                                         {
                                             this.LeaveSchool(unfilteredChunkIndex, entity, school);

@@ -27,6 +27,15 @@ This section has a few options to configure education:
 
 * **Number of years in College:** The number of years that cims will stay in College.
 * **Number of years in University:** The number of years that cims will stay in University.
+* **Elementary School Graduation Probability:** The probability that a citizen will graduate elementary school.
+* **High School Graduation Probability:** The probability that a citizen will graduate high school.
+* **College Graduation Probability:** The probability that a citizen will graduate college.
+* **University Graduation Probability:** The probability that a citizen will graduate university.
+* **Entering High School Probability:** The probability that a citizen will enter High School.
+* **Adult Entering High School Probability:** The probability that an adult will enter High School.
+* **Worker Continue Education Probability:** The probability that a worker will continue their education.
+
+**WARNING:** Using this mod in an existing city may cause a death wave.
 	</LongDescription>
 	<!--Thumbnail-->
 	<Thumbnail Value="Properties/Thumbnail.png" />
@@ -38,11 +47,11 @@ This section has a few options to configure education:
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
 	<!--Version of the mod-->
-	<ModVersion Value="0.1.1" />
+	<ModVersion Value="0.3" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.1.*" />
 	<ChangeLog>
-* Fixed Education Infoview calculation to consider minimum shool age for children
+* Recoded immigration system to assign education level to immigrants based on what the city needs
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
 	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />

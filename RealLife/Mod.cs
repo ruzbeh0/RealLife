@@ -10,11 +10,15 @@ using Unity.Entities;
 using RealLife.Systems;
 using Game.Serialization;
 using Game.UI.InGame;
+using Game.UI;
+using HarmonyLib;
+using System.Linq;
 
 namespace RealLife
 {
     public class Mod : IMod
     {
+        public static readonly string harmonyID = "RealLife";
         public static ILog log = LogManager.GetLogger($"{nameof(RealLife)}.{nameof(Mod)}").SetShowsErrorsInUI(false);
         public static Setting m_Setting;
 
@@ -46,7 +50,9 @@ namespace RealLife
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.GraduationSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.FindSchoolSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.DeathCheckSystem>().Enabled = false;
-            World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<RealLifeEducationInfoviewUISystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.SchoolAISystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Citizens.CitizenInitializeSystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.UI.InGame.EducationInfoviewUISystem>().Enabled = false;
 
             updateSystem.UpdateAt<RealLifeAgingSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeApplyToSchoolSystem>(SystemUpdatePhase.GameSimulation);
@@ -54,8 +60,23 @@ namespace RealLife
             updateSystem.UpdateAt<RealLifeFindSchoolSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<RealLifeSchoolAISystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<RealLifeCitizenInitializeSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAfter<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabUpdate);
+            updateSystem.UpdateBefore<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabReferences);
             updateSystem.UpdateBefore<PreDeserialize<RealLifeEducationInfoviewUISystem>>(SystemUpdatePhase.Deserialize);
             updateSystem.UpdateAt<RealLifeEducationInfoviewUISystem>(SystemUpdatePhase.UIUpdate);
+
+            //Harmony
+            var harmony = new Harmony(harmonyID);
+            //Harmony.DEBUG = true;
+            harmony.PatchAll(typeof(Mod).Assembly);
+            var patchedMethods = harmony.GetPatchedMethods().ToArray();
+            log.Info($"Plugin {harmonyID} made patches! Patched methods: " + patchedMethods);
+            foreach (var patchedMethod in patchedMethods)
+            {
+                log.Info($"Patched method: {patchedMethod.Module.Name}:{patchedMethod.Name}");
+            }
         }
 
         public void OnDispose()

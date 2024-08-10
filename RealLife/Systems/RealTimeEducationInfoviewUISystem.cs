@@ -599,16 +599,16 @@ namespace RealLife.Systems
                                 ++f1;
                             else if (citizen.GetEducationLevel() == 1 && age <= CitizenAge.Adult)
                             {
-                                f2 += ApplyToSchoolSystem.GetEnteringProbability(age, nativeArray4.IsCreated, 2, (int)citizen.m_WellBeing, willingness, cityModifiers, ref this.m_EducationParameterData);
+                                f2 += RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray4.IsCreated, 2, (int)citizen.m_WellBeing, willingness, cityModifiers, ref this.m_EducationParameterData);
                             }
                             else
                             {
                                 int failedEducationCount = citizen.GetFailedEducationCount();
                                 if (citizen.GetEducationLevel() == 2 && failedEducationCount < 3)
                                 {
-                                    float enteringProbability = ApplyToSchoolSystem.GetEnteringProbability(age, nativeArray4.IsCreated, 4, (int)citizen.m_WellBeing, willingness, cityModifiers, ref this.m_EducationParameterData);
+                                    float enteringProbability = RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray4.IsCreated, 4, (int)citizen.m_WellBeing, willingness, cityModifiers, ref this.m_EducationParameterData);
                                     f4 += enteringProbability;
-                                    f3 += (1f - enteringProbability) * ApplyToSchoolSystem.GetEnteringProbability(age, nativeArray4.IsCreated, 3, (int)citizen.m_WellBeing, willingness, cityModifiers, ref this.m_EducationParameterData);
+                                    f3 += (1f - enteringProbability) * RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray4.IsCreated, 3, (int)citizen.m_WellBeing, willingness, cityModifiers, ref this.m_EducationParameterData);
                                 }
                             }
                         }
