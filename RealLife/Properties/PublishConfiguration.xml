@@ -25,6 +25,7 @@ This setting menu allows you to configure some age settings:
 
 This section has a few options to configure education:
 
+* **University Capacity for College:** Allows college students to go for a college degree in an Univeristy. This feature is not set by default. The percentage of University capacity that will be for College degrees can be set in this option. Values higher than zero will enable this feature and also decrease the number of available spots for Univeristy students.
 * **Number of years in College:** The number of years that cims will stay in College.
 * **Number of years in University:** The number of years that cims will stay in University.
 * **Elementary School Graduation Probability:** The probability that a citizen will graduate elementary school.
@@ -34,6 +35,16 @@ This section has a few options to configure education:
 * **Entering High School Probability:** The probability that a citizen will enter High School.
 * **Adult Entering High School Probability:** The probability that an adult will enter High School.
 * **Worker Continue Education Probability:** The probability that a worker will continue their education.
+
+## Birth and Relationship Settings
+
+This section has a few options to adjust the game birth and relationship parameters. These are factors which you can use to increase or decrease the original value. These are factors that can be adjusted:
+
+* Student Birth Rate
+* Base Birth Rate
+* Adult Female Birth Rate Bonus
+* Divorce Rate
+* Look for Partner Rate
 
 **WARNING:** Using this mod in an existing city may cause a death wave.
 	</LongDescription>
@@ -47,15 +58,16 @@ This section has a few options to configure education:
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
 	<!--Version of the mod-->
-	<ModVersion Value="0.3" />
+	<ModVersion Value="0.4.5" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.1.*" />
 	<ChangeLog>
-* Recoded immigration system to assign education level to immigrants based on what the city needs
+* Reducing the frequency of death check
+* Updated adult immigration to follow a normal distribution and were most of adult immigrants will be young adults
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
 	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />
 	<ExternalLink Type="discord" Url="https://discord.com/channels/1024242828114673724/1270106414337097868" />
 	<ExternalLink Type="paypal" Url="https://www.paypal.com/paypalme/ruzbeh0" />
-	<ExternalLink Type="ko-fi" Url="https://ko-fi.com/ruzbeh0" />
+	<ExternalLink Type="kofi" Url="https://ko-fi.com/ruzbeh0" />
 </Publish>

@@ -13,6 +13,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Game.Companies;
+using RealLife.Utils;
 
 #nullable disable
 namespace RealLife.Systems
@@ -250,11 +251,27 @@ namespace RealLife.Systems
                         int adultAgeLimitInDays = adult_age_limit;
                         int teentAgeLimitInDays = teen_age_limit;
 
-                        num2 = teentAgeLimitInDays + random.NextInt(adultAgeLimitInDays - teentAgeLimitInDays);
+                        // Adult age will have a higher probability for being younger
+                        double ageVariation = GaussianRandom.NextGaussianDouble(random)/2.5f;
+
+                        int median_point = (adultAgeLimitInDays - teentAgeLimitInDays) / 4;
+
+                        int age_offset;
+
+                        if(ageVariation > 0)
+                        {
+                            age_offset = (int)((adultAgeLimitInDays - median_point - teentAgeLimitInDays) * ageVariation);
+                        } else
+                        {
+                            age_offset = (int)((median_point) * ageVariation);
+                        }
+
+                        num2 = teentAgeLimitInDays + median_point + age_offset;
+                        //Mod.log.Info($"Adult Immigrant age: {num2}, ageVar:{ageVariation}, ageOff:{age_offset}, medpoint:{median_point}");
                         citizen1.SetAge(CitizenAge.Adult);
                         
                         // Education will be based on what is required on free workplaces
-                        int totalWorkPlaces = m_FreeWorkplaces[0] + m_FreeWorkplaces[1] + m_FreeWorkplaces[2] + m_FreeWorkplaces[3] + m_FreeWorkplaces[4] + m_FreeWorkplaces[5];
+                        int totalWorkPlaces = m_FreeWorkplaces[0] + m_FreeWorkplaces[1] + m_FreeWorkplaces[2] + m_FreeWorkplaces[3] + m_FreeWorkplaces[4];
 
                         int eduLevel = 0;
                         if (totalWorkPlaces == 0) 
@@ -263,9 +280,10 @@ namespace RealLife.Systems
                         }
                         else 
                         {
-
+                        
+                            //Same logic as pop rebalance mod by Infixo
                             int roll = random.NextInt(totalWorkPlaces);
-                            for (int c = 5; c >= 0; c--)
+                            for (int c = 4; c >= 0; c--)
                             {
                                 totalWorkPlaces -= m_FreeWorkplaces[c];
                                 if (roll >= totalWorkPlaces)
@@ -282,13 +300,13 @@ namespace RealLife.Systems
                     {
                         int childAgeLimit = child_age_limit;
                         int teenAgeLimit = teen_age_limit;
-
+                        
                         double num3 = (double)citizen1.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
                         if ((double)random.NextFloat(1f) > (double)this.m_DemandParameters.m_TeenSpawnPercentage)
                         {
                             citizen1.SetAge(CitizenAge.Child);
                             citizen1.SetEducationLevel(0);
-
+                        
                             // Child age must be between zero and child age limit
                             num2 = random.NextInt(childAgeLimit);
                         }
@@ -301,7 +319,7 @@ namespace RealLife.Systems
                                 eduLevel = 1;
                             }
                             int2 = new int2(eduLevel, eduLevel);
-
+                        
                             // Teen age must be between child age limit and teen age limit
                             num2 = childAgeLimit + random.NextInt(teenAgeLimit - childAgeLimit);
                         }
@@ -324,14 +342,12 @@ namespace RealLife.Systems
                         // Adult age must be between teen age limit and adult retirement age
                         int adultAgeLimitInDays = adult_age_limit;
                         int teentAgeLimitInDays = teen_age_limit;
-
+                        
                         num2 = teentAgeLimitInDays + random.NextInt(adultAgeLimitInDays - teentAgeLimitInDays);
                         citizen1.SetAge(CitizenAge.Adult);
                         int2 = new int2(2, 3);
                     }
-
-                    citizen1.m_BirthDay = (short)(TimeSystem.GetDay(m_SimulationFrame, m_TimeData) - num2);
-
+                    
                     float max = 0.0f;
                     float num4 = 1f;
                     for (int index3 = 0; index3 <= 3; ++index3)
@@ -344,7 +360,6 @@ namespace RealLife.Systems
                     }
                     if (int2.y == 4)
                         max += num4;
-                    //Same logic as pop rebalance mod by Infixo
                     float num5 = random.NextFloat(max);
                     for (int x = int2.x; x <= int2.y; ++x)
                     {
@@ -356,6 +371,7 @@ namespace RealLife.Systems
                         num5 -= this.m_DemandParameters.m_NewCitizenEducationParameters[x];
                     }
                     citizen1.m_BirthDay = (short)(TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData) - num2);
+                    //Mod.log.Info($"BirthDay:{citizen1.m_BirthDay}, Day:{TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData)},num2:{num2}");
                     this.m_Citizens[entity1] = citizen1;
                 }
             }

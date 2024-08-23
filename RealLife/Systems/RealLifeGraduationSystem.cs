@@ -16,6 +16,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using static Game.Prefabs.ElectricityConnection;
 
 #nullable disable
 namespace RealLife.Systems
@@ -130,10 +131,10 @@ namespace RealLife.Systems
             switch (level)
             {
                 case 1:
-                    num2 = (elementary_grad_prob/100f)*math.smoothstep(0.0f, 1f, (float)(0.60000002384185791 * (double)num1 + 0.40999999642372131));
+                    num2 = (elementary_grad_prob/100f);
                     break;
                 case 2:
-                    num2 = (high_grad_prob / 100f) * math.log((float)(2.5999999046325684 * (double)num1 + 1.1000000238418579));
+                    num2 = (high_grad_prob / 100f);
                     break;
                 case 3:
                     float num3 = (college_grad_prob / 100f) * math.log((float)(1.6000000238418579 * (double)num1 + 1.0)) + collegeModifier.x;
@@ -147,6 +148,7 @@ namespace RealLife.Systems
                     num2 = 0.0f;
                     break;
             }
+            
             return (float)(1.0 - (1.0 - (double)num2) / (double)efficiency) + graduationModifier;
         }
 
@@ -202,6 +204,7 @@ namespace RealLife.Systems
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
                 m_UpdateFrameIndex = updateFrame,
                 m_DebugFastGraduationLevel = this.debugFastGraduationLevel,
+                child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
                 adult_age_limit = Mod.m_Setting.adult_age_limit,
                 years_in_college = Mod.m_Setting.years_in_college,
@@ -209,7 +212,10 @@ namespace RealLife.Systems
                 elementary_grad_probability = Mod.m_Setting.elementary_grad_prob,
                 high_grad_probability = Mod.m_Setting.high_grad_prob,
                 college_grad_probability = Mod.m_Setting.college_grad_prob,
-                university_grad_probability = Mod.m_Setting.university_grad_prob
+                university_grad_probability = Mod.m_Setting.university_grad_prob,
+                male_life_expectancy = Mod.m_Setting.male_life_expectancy,
+                female_life_expectancy = Mod.m_Setting.female_life_expectancy,
+                college_in_univ_prob = Mod.m_Setting.college_edu_in_univ
             };
 
             this.Dependency = jobData.ScheduleParallel<RealLifeGraduationSystem.GraduationJob>(this.m_StudentQuery, this.Dependency);
@@ -292,14 +298,18 @@ namespace RealLife.Systems
             public Entity m_City;
             public uint m_UpdateFrameIndex;
             public int m_DebugFastGraduationLevel;
+            public int child_age_limit;
             public int teen_age_limit;
             public int adult_age_limit;
+            public int male_life_expectancy;
+            public int female_life_expectancy;
             public int years_in_college;
             public int years_in_university;
             public float elementary_grad_probability;
             public float high_grad_probability;
             public float college_grad_probability;
             public float university_grad_probability;
+            public int college_in_univ_prob;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -334,7 +344,21 @@ namespace RealLife.Systems
                             int num1 = (int)student.m_Level;
                             if (num1 == (int)byte.MaxValue)
                             {
-                                num1 = (int)this.m_SchoolDatas[prefab].m_EducationLevel;
+                                if(college_in_univ_prob > 0)
+                                {
+                                    if(num1 < (int)this.m_SchoolDatas[prefab].m_EducationLevel)
+                                    {
+                                        num1 = (int)this.m_SchoolDatas[prefab].m_EducationLevel - 1;
+                                        //Mod.log.Info($"num1:{num1}, univ:{(int)this.m_SchoolDatas[prefab].m_EducationLevel}");
+                                    } else
+                                    {
+                                        num1 = (int)this.m_SchoolDatas[prefab].m_EducationLevel;
+                                    }
+                                } else
+                                {
+                                    num1 = (int)this.m_SchoolDatas[prefab].m_EducationLevel;
+                                }
+                                
                             }
                             SchoolData schoolData = this.m_SchoolDatas[prefab];
                             if (this.m_InstalledUpgrades.HasBuffer(school))
@@ -350,13 +374,44 @@ namespace RealLife.Systems
                                 if (this.m_DebugFastGraduationLevel == num1 || (double)random.NextFloat() < (double)graduationProbability)
                                 {
                                     bool graduate = false;
-                                    switch(num1)
+
+                                    int oldage = age;
+                                    //Temporary solution to negative ages. Assigning new ages based on age group
+                                    if(age < 0)
+                                    {
+                                        switch ((int)ageGroup)
+                                        {
+                                            case 0: //child
+                                                age = child_age_limit - 1;
+                                                break;
+                                            case 1: //teen
+                                                age = random.NextInt(child_age_limit + 1, teen_age_limit);
+                                                break;
+                                            case 2: //adult
+                                                age = random.NextInt(teen_age_limit + 1, adult_age_limit);
+                                                break;
+                                            case 3: //elder
+                                                age = random.NextInt(adult_age_limit + 1, male_life_expectancy);
+                                                break;
+                                            default:
+                                                age = male_life_expectancy;
+                                                break;
+                                        }
+
+                                        local.m_BirthDay = (short)(day - age);
+                                        nativeArray2[index] = local;
+                                        age = day - (int)local.m_BirthDay;
+
+                                        //Mod.log.Info($"Age:{age}, day:{day},bd:{local.m_BirthDay},group:{ageGroup}");
+
+                                    }
+                                    switch (num1)
                                     {
                                         case 1: //elementary school
-                                            graduate = ((int)ageGroup > 1);
+                                            graduate = age >= child_age_limit;
                                             break;
                                         case 2: //high school
-                                            graduate = ((int)ageGroup > 2);
+                                            graduate = age >= teen_age_limit;
                                             break;
                                         case 3: //college
                                             graduate = (age - teen_age_limit) > years_in_college;
@@ -366,16 +421,25 @@ namespace RealLife.Systems
                                             break;
                                         default:
                                             break;
-                                    }
-                                    if(graduate)
+                                    }                                   
+
+                                    if (graduate)
                                     {
+                                        //if(num1 == 1)
+                                        //{
+                                        //    Mod.log.Info($"Graduated:{graduate}, level:{num1},ageGroup:{ageGroup},oldage:{oldage},age:{age},day:{day}");
+                                        //}
+                                        
+                                        ref Citizen local2 = ref nativeArray2.ElementAt<Citizen>(index);
+                                        int age2 = day - (int)local.m_BirthDay;                                       
+                                        
                                         local.SetEducationLevel(Mathf.Max(local.GetEducationLevel(), num1));
                                         if (this.m_DebugFastGraduationLevel != 0 || num1 > 1)
                                         {
                                             this.LeaveSchool(unfilteredChunkIndex, entity, school);
                                             this.m_TriggerBuffer.Enqueue(new TriggerAction(TriggerType.CitizenGraduated, Entity.Null, entity, school));
                                         }
-                                    }
+                                    } 
                                 }
                                 else if (num1 > 2)
                                 {

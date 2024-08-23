@@ -163,10 +163,10 @@ namespace RealLife.Systems
             this.m_HighSchoolCapacity.Update(this.m_Results[14]);
             this.m_HighSchoolEligible.Update(this.m_Results[6]);
             this.m_CollegeStudents.Update(this.m_Results[11]);
-            this.m_CollegeCapacity.Update(this.m_Results[15]);
+            this.m_CollegeCapacity.Update(this.m_Results[15] + (int)(this.m_Results[16] * (Mod.m_Setting.college_edu_in_univ / 100f)));
             this.m_CollegeEligible.Update(this.m_Results[7]);
             this.m_UniversityStudents.Update(this.m_Results[12]);
-            this.m_UniversityCapacity.Update(this.m_Results[16]);
+            this.m_UniversityCapacity.Update((int)(this.m_Results[16]*(1 - Mod.m_Setting.college_edu_in_univ/100f)));
             this.m_UniversityEligible.Update(this.m_Results[8]);
             this.m_ElementaryAvailability.Update();
             this.m_HighSchoolAvailability.Update();
@@ -218,7 +218,8 @@ namespace RealLife.Systems
                 m_PrefabRefFromEntity = this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup,
                 m_SchoolDataFromEntity = this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup,
                 m_InstalledUpgradeFromEntity = this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup,
-                m_Results = this.m_Results
+                m_Results = this.m_Results,
+                college_in_univ_edu = Mod.m_Setting.college_edu_in_univ
             }.Schedule<RealLifeEducationInfoviewUISystem.UpdateStudentCountsJob>(this.m_SchoolQuery, this.Dependency).Complete();
         }
 
@@ -451,6 +452,7 @@ namespace RealLife.Systems
             [ReadOnly]
             public BufferLookup<InstalledUpgrade> m_InstalledUpgradeFromEntity;
             public NativeArray<int> m_Results;
+            public int college_in_univ_edu;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -469,6 +471,7 @@ namespace RealLife.Systems
                     if ((double)BuildingUtils.GetEfficiency(bufferAccessor2, index) != 0.0)
                     {
                         DynamicBuffer<Game.Buildings.Student> dynamicBuffer = bufferAccessor1[index];
+
                         SchoolData componentData;
                         this.m_SchoolDataFromEntity.TryGetComponent(prefab, out componentData);
                         DynamicBuffer<InstalledUpgrade> bufferData;
@@ -497,7 +500,15 @@ namespace RealLife.Systems
                             default:
                                 continue;
                         }
+
+                        //this.m_Results[11] = this.m_Results[11] + (int)(this.m_Results[12] * (Mod.m_Setting.college_edu_in_univ / 100f));
                     }
+                }
+
+                if(college_in_univ_edu > 0)
+                {
+                    this.m_Results[11] += (int)(this.m_Results[12] * (college_in_univ_edu / 100f));
+                    this.m_Results[12] -= (int)(this.m_Results[12] * (1f - college_in_univ_edu / 100f));
                 }
             }
 

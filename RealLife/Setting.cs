@@ -11,14 +11,17 @@ using static Game.Simulation.TerrainSystem;
 namespace RealLife
 {
     [FileLocation(nameof(RealLife))]
-    [SettingsUIGroupOrder(AgeGroup, EducationGroup)]
-    [SettingsUIShowGroupName(AgeGroup, EducationGroup)]
+    [SettingsUIGroupOrder(AgeGroup, EducationGroup, CitizenGroup)]
+    [SettingsUIShowGroupName(AgeGroup, GraduationGroup, EducationGroup)]
     public class Setting : ModSetting
     {
         public const string AgeSection = "Age";
         public const string AgeGroup = "AgeGroup";
         public const string EducationSection = "Education";
+        public const string CitizenSection = "CitizenSection";
         public const string EducationGroup = "EducationGroup";
+        public const string GraduationGroup = "GraduationGroup";
+        public const string CitizenGroup = "CitizenGroup";
 
         public Setting(IMod mod) : base(mod)
         {
@@ -41,7 +44,14 @@ namespace RealLife
             university_grad_prob = 85;
             enter_high_school_prob = 88;
             adult_enter_high_school_prob = 10;
-            worker_continue_education = 10;
+            worker_continue_education = 0;
+            student_birth_rate_adjuster = 0;
+            base_birth_rate_adjuster = 0;
+            adult_female_birth_rate_bonus_adjuster = 0;
+            divorce_rate_adjuster = 0;
+            look_for_partner_rate_adjuster = 0;
+            college_edu_in_univ = 0;
+            corpse_vanish = 0;
         }
 
         [SettingsUISlider(min = 0, max = 10, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
@@ -68,28 +78,36 @@ namespace RealLife
         [SettingsUISection(AgeSection, AgeGroup)]
         public int male_life_expectancy { get; set; }
 
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(AgeSection, AgeGroup)]
+        public int corpse_vanish { get; set; }
+
         [SettingsUISlider(min = 1, max = 6, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
-        [SettingsUISection(EducationSection, EducationGroup)]
+        [SettingsUISection(EducationSection, GraduationGroup)]
         public int years_in_college { get; set; }
 
         [SettingsUISlider(min = 1, max = 6, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
-        [SettingsUISection(EducationSection, EducationGroup)]
+        [SettingsUISection(EducationSection, GraduationGroup)]
         public int years_in_university { get; set; }
 
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
-        [SettingsUISection(EducationSection, EducationGroup)]
+        [SettingsUISection(EducationSection, GraduationGroup)]
         public int elementary_grad_prob { get; set; }
 
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
         [SettingsUISection(EducationSection, EducationGroup)]
+        public int college_edu_in_univ { get; set; }
+
+        [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(EducationSection, GraduationGroup)]
         public int high_grad_prob { get; set; }
 
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
-        [SettingsUISection(EducationSection, EducationGroup)]
+        [SettingsUISection(EducationSection, GraduationGroup)]
         public int college_grad_prob { get; set; }
 
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
-        [SettingsUISection(EducationSection, EducationGroup)]
+        [SettingsUISection(EducationSection, GraduationGroup)]
         public int university_grad_prob { get; set; }
 
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
@@ -103,6 +121,27 @@ namespace RealLife
         [SettingsUISlider(min = 0, max = 100, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
         [SettingsUISection(EducationSection, EducationGroup)]
         public int worker_continue_education { get; set; }
+
+        [SettingsUISlider(min = -100, max = 300, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(CitizenSection, CitizenGroup)]
+        public int student_birth_rate_adjuster { get; set; }
+
+        [SettingsUISlider(min = -100, max = 300, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(CitizenSection, CitizenGroup)]
+        public int base_birth_rate_adjuster { get; set; }
+
+        [SettingsUISlider(min = -100, max = 300, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(CitizenSection, CitizenGroup)]
+        public int divorce_rate_adjuster { get; set; }
+
+        [SettingsUISlider(min = -100, max = 300, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(CitizenSection, CitizenGroup)]
+        public int adult_female_birth_rate_bonus_adjuster { get; set; }
+
+        [SettingsUISlider(min = -100, max = 300, step = 1, scalarMultiplier = 1, unit = Unit.kPercentage)]
+        [SettingsUISection(CitizenSection, CitizenGroup)]
+        public int look_for_partner_rate_adjuster { get; set; }
+
     }  
 
     public class LocaleEN : IDictionarySource
@@ -119,22 +158,29 @@ namespace RealLife
                 { m_Setting.GetSettingsLocaleID(), "Real Life" },
                 { m_Setting.GetOptionTabLocaleID(Setting.AgeSection), "Age" },
                 { m_Setting.GetOptionTabLocaleID(Setting.EducationSection), "Education" },
+                { m_Setting.GetOptionTabLocaleID(Setting.CitizenSection), "Birth & Relationships" },
 
                 { m_Setting.GetOptionGroupLocaleID(Setting.AgeGroup), "Age Settings" },
-                { m_Setting.GetOptionGroupLocaleID(Setting.EducationGroup), "Education Settings" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.EducationGroup), "Education" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.GraduationGroup), "Graduation" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.CitizenGroup), "Birth & Relationships" },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.child_school_start_age)), "Child School Start Age" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.child_school_start_age)), $"Age the children start going to Elementary School." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.child_school_start_age)), $"Age the children start going to Elementary School. Vanilla value is Zero." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.child_age_limit)), "Child Age Limit" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.child_age_limit)), $"Age that children become teens." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.child_age_limit)), $"Age that children become teens. Vanilla value is 21." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.teen_age_limit)), "Teen Age Limit" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.teen_age_limit)), $"Age that teens become adults." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.teen_age_limit)), $"Age that teens become adults. Vanilla value is 36." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.adult_age_limit)), "Adult Retirement Age" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.adult_age_limit)), $"Age that adults become elderly and retire." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.adult_age_limit)), $"Age that adults become elderly and retire. Vanilla value is 75." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.female_life_expectancy)), "Female Life Expectancy" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.female_life_expectancy)), $"Average age that female citizens can die." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.male_life_expectancy)), "Male Life Expectancy" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.male_life_expectancy)), $"Average age that male citizens can die." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.corpse_vanish)), "Probability of Vanishing Corpses" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.corpse_vanish)), $"Probability that a corpse will vanish and will not require death care services." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.college_edu_in_univ)), "University Capacity for College" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.college_edu_in_univ)), $"Percentage of University capacity that will be for College education. If higher than zero, some college students will go to for College Degree in an University." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.years_in_college)), "Number of years in college" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.years_in_college)), $"Number of years that it takes for a cim to graduate college. A year is considered one in game day." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.years_in_university)), "Number of years in university" },
@@ -153,6 +199,18 @@ namespace RealLife
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.adult_enter_high_school_prob)), $"Percentage of adults that enter High School." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.worker_continue_education)), "Probability of Workers continuing Education" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.worker_continue_education)), $"Percentage of workers that will continue their education." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.student_birth_rate_adjuster)), "Student Birth Rate Factor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.student_birth_rate_adjuster)), $"Increase or decrease the student birth rate" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.base_birth_rate_adjuster)), "Base Birth Rate Factor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.base_birth_rate_adjuster)), $"Increase or decrease the base birth rate" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.adult_female_birth_rate_bonus_adjuster)), "Adult Female Birth Rate Factor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.adult_female_birth_rate_bonus_adjuster)), $"Increase or decrease the adult female bonus birth rate" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.divorce_rate_adjuster)), "Divorce Rate Factor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.divorce_rate_adjuster)), $"Increase or decrease the divorce rate" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.look_for_partner_rate_adjuster)), "Look for Partner Rate Factor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.look_for_partner_rate_adjuster)), $"Increase or decrease the look for partner rate" },
+
+
             };
         }
 

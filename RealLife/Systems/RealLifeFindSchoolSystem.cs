@@ -84,7 +84,8 @@ namespace RealLife.Systems
                     m_HouseholdCitizens = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup,
                     m_OwnedVehicles = this.__TypeHandle.__Game_Vehicles_OwnedVehicle_RO_BufferLookup,
                     m_PathfindQueue = this.m_PathfindSetupSystem.GetQueue((object)this, 64).AsParallelWriter(),
-                    m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter()
+                    m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
+                    college_in_univ_prob = Mod.m_Setting.college_edu_in_univ
                 };
                 this.Dependency = jobData.ScheduleParallel<RealLifeFindSchoolSystem.FindSchoolJob>(this.m_SchoolSeekerQuery, this.Dependency);
                 this.m_PathfindSetupSystem.AddQueueWriter(this.Dependency);
@@ -214,6 +215,8 @@ namespace RealLife.Systems
             public BufferLookup<OwnedVehicle> m_OwnedVehicles;
             public NativeQueue<SetupQueueItem>.ParallelWriter m_PathfindQueue;
             public EntityCommandBuffer.ParallelWriter m_CommandBuffer;
+            public RandomSeed m_RandomSeed;
+            public int college_in_univ_prob;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -224,6 +227,7 @@ namespace RealLife.Systems
                 NativeArray<Entity> nativeArray1 = chunk.GetNativeArray(this.m_EntityType);
                 NativeArray<Owner> nativeArray2 = chunk.GetNativeArray<Owner>(ref this.m_OwnerType);
                 NativeArray<SchoolSeeker> nativeArray3 = chunk.GetNativeArray<SchoolSeeker>(ref this.m_SchoolSeekerType);
+                Unity.Mathematics.Random random = Unity.Mathematics.Random.CreateFromIndex((uint)unfilteredChunkIndex);
                 for (int index = 0; index < nativeArray1.Length; ++index)
                 {
                     Entity owner = nativeArray2[index].m_Owner;
@@ -267,6 +271,18 @@ namespace RealLife.Systems
                             setupQueueTarget = new SetupQueueTarget();
                             setupQueueTarget.m_Type = SetupTargetType.SchoolSeekerTo;
                             setupQueueTarget.m_Methods = PathMethod.Pedestrian;
+
+                            //If allow college in university
+                            //Mod.log.Info($"College in Univ:{college_in_univ},level:{level}");
+                            if (college_in_univ_prob > 0 && level == 3)
+                            {
+                                int prob = random.NextInt(100);
+                                if (prob < college_in_univ_prob)
+                                {
+                                    level = 4;
+                                }
+                                //Mod.log.Info($"Prob:{prob},level:{level}");
+                            }
                             setupQueueTarget.m_Value = level;
                             setupQueueTarget.m_Entity = district;
                             SetupQueueTarget destination = setupQueueTarget;
@@ -373,6 +389,11 @@ namespace RealLife.Systems
                                     if (this.m_SchoolData.HasComponent(prefab))
                                     {
                                         SchoolData result = this.m_SchoolData[prefab];
+                                        //if(result.m_EducationLevel < 5 && result.m_EducationLevel != nativeArray4[index2].m_Level)
+                                        //{
+                                        //    Mod.log.Info($"School level :{result.m_EducationLevel}, Student level:{nativeArray4[index2].m_Level}");
+                                        //}
+                                        
                                         if (this.m_InstalledUpgrades.HasBuffer(destination))
                                         {
                                             UpgradeUtils.CombineStats<SchoolData>(ref result, this.m_InstalledUpgrades[destination], ref this.m_Prefabs, ref this.m_SchoolData);

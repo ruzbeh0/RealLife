@@ -25,6 +25,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using System;
 
 #nullable disable
 namespace RealLife.Systems
@@ -32,7 +33,6 @@ namespace RealLife.Systems
     public partial class RealLifeDeathCheckSystem : GameSystemBase
     {
         public static readonly int kUpdatesPerDay = 4;
-        public static readonly int kMaxAge = 9;
         private SimulationSystem m_SimulationSystem;
         private IconCommandSystem m_IconCommandSystem;
         private CitySystem m_CitySystem;
@@ -127,7 +127,8 @@ namespace RealLife.Systems
                 m_TimeSettings = this.m_TimeSettingsQuery.GetSingleton<TimeSettingsData>(),
                 m_TimeData = this.m_TimeDataQuery.GetSingleton<TimeData>(),
                 male_life_expectancy = Mod.m_Setting.male_life_expectancy,
-                female_life_expectancy = Mod.m_Setting.female_life_expectancy
+                female_life_expectancy = Mod.m_Setting.female_life_expectancy,
+                corpse_vanish = Mod.m_Setting.corpse_vanish
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeDeathCheckSystem.DeathCheckJob>(this.m_DeathCheckQuery, JobHandle.CombineDependencies(this.Dependency, deps));
             this.m_IconCommandSystem.AddCommandBufferWriter(this.Dependency);
@@ -231,6 +232,7 @@ namespace RealLife.Systems
             public uint m_SimulationFrame;
             public int female_life_expectancy;
             public int male_life_expectancy;
+            public int corpse_vanish;
 
             private void Die(
               ArchetypeChunk chunk,
@@ -239,14 +241,18 @@ namespace RealLife.Systems
               Entity citizen,
               Entity household,
               NativeArray<Game.Citizens.Student> students,
-              NativeArray<HealthProblem> healthProblems)
+              NativeArray<HealthProblem> healthProblems,
+              bool isVanishCorpse)
             {
+                //Vanishing corpse logic from Infixo's Pop Rebalance Mod
                 if (!healthProblems.IsCreated)
                 {
                     HealthProblem component = new HealthProblem()
                     {
                         m_Flags = HealthProblemFlags.Dead | HealthProblemFlags.RequireTransport
                     };
+                    if (isVanishCorpse)
+                        component.m_Flags &= ~HealthProblemFlags.RequireTransport;
                     this.m_CommandBuffer.AddComponent<HealthProblem>(chunkIndex, citizen, component);
                 }
                 else
@@ -259,6 +265,8 @@ namespace RealLife.Systems
                     }
                     healthProblem.m_Flags &= ~(HealthProblemFlags.Sick | HealthProblemFlags.Injured);
                     healthProblem.m_Flags |= HealthProblemFlags.Dead | HealthProblemFlags.RequireTransport;
+                    if (isVanishCorpse)
+                        healthProblem.m_Flags &= ~HealthProblemFlags.RequireTransport;
                     healthProblems[i] = healthProblem;
                 }
 
@@ -280,6 +288,10 @@ namespace RealLife.Systems
                 if (chunk.Has<ResourceBuyer>(ref this.m_ResourceBuyerType))
                 {
                     this.m_CommandBuffer.RemoveComponent<ResourceBuyer>(chunkIndex, citizen);
+                }
+                if (isVanishCorpse)
+                {
+                    m_CommandBuffer.AddComponent(chunkIndex, citizen, default(Deleted));
                 }
                 if (!chunk.Has<Leisure>(ref this.m_LeisureType))
                     return;
@@ -306,6 +318,9 @@ namespace RealLife.Systems
                     Entity entity = nativeArray1[index];
                     Entity household = nativeArray5.Length != 0 ? nativeArray5[index].m_Household : Entity.Null;
                     Citizen citizen = nativeArray3[index];
+
+                    bool isVanishCorpse = random.NextInt(100) < corpse_vanish;
+
                     if (this.m_CurrentTransport.HasComponent(entity))
                     {
                         CurrentTransport currentTransport = this.m_CurrentTransport[entity];
@@ -331,12 +346,13 @@ namespace RealLife.Systems
                         }
                         lifeExpectancy +=  (int)extraYears;
 
-                        int check = random.NextInt(kUpdatesPerDay);
+                        //Checking death with a probability of 1/kUpdatesPerDay*2
+                        int check = random.NextInt(kUpdatesPerDay*2);
                         if(check < 1)
                         {
                             if (age > lifeExpectancy)
                             {
-                                this.Die(chunk, unfilteredChunkIndex, index, entity, household, nativeArray4, nativeArray2);
+                                this.Die(chunk, unfilteredChunkIndex, index, entity, household, nativeArray4, nativeArray2, isVanishCorpse);
                             }
                         }
                         
@@ -348,7 +364,7 @@ namespace RealLife.Systems
                             int num2 = num1 * num1 + 8;
                             if (random.NextInt(RealLifeDeathCheckSystem.kUpdatesPerDay * 1000) <= num2)
                             {
-                                this.Die(chunk, unfilteredChunkIndex, index, entity, household, nativeArray4, nativeArray2);
+                                this.Die(chunk, unfilteredChunkIndex, index, entity, household, nativeArray4, nativeArray2, isVanishCorpse);
                             }
                             else
                             {

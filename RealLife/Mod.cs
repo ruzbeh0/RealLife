@@ -51,19 +51,24 @@ namespace RealLife
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.FindSchoolSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.DeathCheckSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.SchoolAISystem>().Enabled = false;
+            //World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.ResidentialDemandSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Citizens.CitizenInitializeSystem>().Enabled = false;
+            //World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Serialization.CitizenSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.UI.InGame.EducationInfoviewUISystem>().Enabled = false;
 
             updateSystem.UpdateAt<RealLifeAgingSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeApplyToSchoolSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeGraduationSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeFindSchoolSystem>(SystemUpdatePhase.GameSimulation);
-            updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation);
-            updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation); 
             updateSystem.UpdateAt<RealLifeSchoolAISystem>(SystemUpdatePhase.GameSimulation);
-            updateSystem.UpdateAt<RealLifeCitizenInitializeSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<RealLifeCitizenInitializeSystem>(SystemUpdatePhase.Modification5);
+            //updateSystem.UpdateAt<RealLifeCitizenSystem>(SystemUpdatePhase.Deserialize);
+            //updateSystem.UpdateAt<RealLifeResidentialDemandSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAfter<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabUpdate);
             updateSystem.UpdateBefore<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabReferences);
+            updateSystem.UpdateAfter<CitizenParametersUpdaterSystem>(SystemUpdatePhase.PrefabUpdate);
+            updateSystem.UpdateBefore<CitizenParametersUpdaterSystem>(SystemUpdatePhase.PrefabReferences);
             updateSystem.UpdateBefore<PreDeserialize<RealLifeEducationInfoviewUISystem>>(SystemUpdatePhase.Deserialize);
             updateSystem.UpdateAt<RealLifeEducationInfoviewUISystem>(SystemUpdatePhase.UIUpdate);
 
