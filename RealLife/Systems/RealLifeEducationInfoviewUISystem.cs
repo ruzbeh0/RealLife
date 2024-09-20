@@ -218,6 +218,7 @@ namespace RealLife.Systems
                 m_PrefabRefFromEntity = this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup,
                 m_SchoolDataFromEntity = this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup,
                 m_InstalledUpgradeFromEntity = this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup,
+                m_StudentFromEntity = this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup,
                 m_Results = this.m_Results,
                 college_in_univ_edu = Mod.m_Setting.college_edu_in_univ
             }.Schedule<RealLifeEducationInfoviewUISystem.UpdateStudentCountsJob>(this.m_SchoolQuery, this.Dependency).Complete();
@@ -451,6 +452,8 @@ namespace RealLife.Systems
             public ComponentLookup<SchoolData> m_SchoolDataFromEntity;
             [ReadOnly]
             public BufferLookup<InstalledUpgrade> m_InstalledUpgradeFromEntity;
+            [ReadOnly]
+            public ComponentLookup<Game.Citizens.Student> m_StudentFromEntity;
             public NativeArray<int> m_Results;
             public int college_in_univ_edu;
 
@@ -475,6 +478,31 @@ namespace RealLife.Systems
                         SchoolData componentData;
                         this.m_SchoolDataFromEntity.TryGetComponent(prefab, out componentData);
                         DynamicBuffer<InstalledUpgrade> bufferData;
+                        for (int index2 = dynamicBuffer.Length - 1; index2 >= 0; --index2)
+                        {
+                            Game.Buildings.Student stud = dynamicBuffer[index2];
+                            Game.Citizens.Student stud2;
+                            if(m_StudentFromEntity.TryGetComponent(stud.m_Student, out stud2) )
+                            {
+                                switch (stud2.m_Level)
+                                {
+                                    //case 1:
+                                    //    this.m_Results[9]++;
+                                    //    continue;
+                                    //case 2:
+                                    //    this.m_Results[10]++;
+                                    //    continue;
+                                    case 3:
+                                        this.m_Results[11]++;
+                                        continue;
+                                    case 4:
+                                        this.m_Results[12]++;
+                                        continue;
+                                    default:
+                                        continue;
+                                }
+                            }
+                        }
                         if (this.m_InstalledUpgradeFromEntity.TryGetBuffer(entity, out bufferData))
                         {
                             UpgradeUtils.CombineStats<SchoolData>(ref componentData, bufferData, ref this.m_PrefabRefFromEntity, ref this.m_SchoolDataFromEntity);
@@ -490,11 +518,11 @@ namespace RealLife.Systems
                                 this.m_Results[14] += componentData.m_StudentCapacity;
                                 continue;
                             case 3:
-                                this.m_Results[11] += dynamicBuffer.Length;
+                                //this.m_Results[11] += dynamicBuffer.Length;
                                 this.m_Results[15] += componentData.m_StudentCapacity;
                                 continue;
                             case 4:
-                                this.m_Results[12] += dynamicBuffer.Length;
+                                //this.m_Results[12] += dynamicBuffer.Length;
                                 this.m_Results[16] += componentData.m_StudentCapacity;
                                 continue;
                             default:
@@ -505,11 +533,11 @@ namespace RealLife.Systems
                     }
                 }
 
-                if(college_in_univ_edu > 0)
-                {
-                    this.m_Results[11] += (int)(this.m_Results[12] * (college_in_univ_edu / 100f));
-                    this.m_Results[12] -= (int)(this.m_Results[12] * (1f - college_in_univ_edu / 100f));
-                }
+                //if(college_in_univ_edu > 0)
+                //{
+                //    this.m_Results[11] += (int)(this.m_Results[12] * (college_in_univ_edu / 100f));
+                //    this.m_Results[12] -= (int)(this.m_Results[12] * (college_in_univ_edu / 100f));
+                //}
             }
 
             void IJobChunk.Execute(
@@ -606,6 +634,7 @@ namespace RealLife.Systems
                             int day = TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData);
                             int age_in_days = day - (int)citizen.m_BirthDay;
                             float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
+                            
                             if (age == CitizenAge.Child && age_in_days > child_school_start_age)
                                 ++f1;
                             else if (citizen.GetEducationLevel() == 1 && age <= CitizenAge.Adult)
@@ -670,6 +699,8 @@ namespace RealLife.Systems
             [ReadOnly]
             public ComponentTypeHandle<Game.Citizens.Student> __Game_Citizens_Student_RO_ComponentTypeHandle;
             [ReadOnly]
+            public ComponentLookup<Game.Citizens.Student> __Game_Citizens_Student_RO_ComponentLookup;
+            [ReadOnly]
             public ComponentTypeHandle<Worker> __Game_Citizens_Worker_RO_ComponentTypeHandle;
             [ReadOnly]
             public ComponentLookup<HouseholdMember> __Game_Citizens_HouseholdMember_RO_ComponentLookup;
@@ -707,6 +738,7 @@ namespace RealLife.Systems
                 this.__Game_Agents_MovingAway_RO_ComponentLookup = state.GetComponentLookup<MovingAway>(true);
                 this.__Game_City_ServiceFee_RO_BufferLookup = state.GetBufferLookup<ServiceFee>(true);
                 this.__Game_City_CityModifier_RO_BufferLookup = state.GetBufferLookup<CityModifier>(true);
+                this.__Game_Citizens_Student_RO_ComponentLookup = state.GetComponentLookup<Game.Citizens.Student>(true);
             }
         }
     }

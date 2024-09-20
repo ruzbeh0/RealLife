@@ -266,7 +266,12 @@ namespace RealLife.Systems
                         int failedEducationCount = citizen.GetFailedEducationCount();
                         if (failedEducationCount == 0 && age > CitizenAge.Teen && level == SchoolLevel.College)
                             level = SchoolLevel.University;
-                        bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level >= SchoolLevel.HighSchool && level < SchoolLevel.University || age == CitizenAge.Adult && level >= SchoolLevel.HighSchool;
+                        bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level >= SchoolLevel.HighSchool && level < SchoolLevel.College || age == CitizenAge.Adult && level >= SchoolLevel.HighSchool;
+                        //if(age_in_days < 0)
+                        //{
+                        //    Mod.log.Info($"FF:{this.m_SimulationFrame},BD:{(int)citizen.m_BirthDay},Age:{age},agedays:{age_in_days},child_school_start_age:{child_school_start_age},flag:{flag}");
+                        //}
+                        
                         Entity household = this.m_HouseholdMembers[nativeArray1[index]].m_Household;
 
                         if (this.m_DebugFastApplySchool || flag && CitizenUtils.HasMovedIn(household, this.m_HouseholdDatas))

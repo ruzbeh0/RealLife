@@ -58,12 +58,11 @@ This section has a few options to adjust the game birth and relationship paramet
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
 	<!--Version of the mod-->
-	<ModVersion Value="0.4.5" />
+	<ModVersion Value="0.4.10" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.1.*" />
 	<ChangeLog>
-* Reducing the frequency of death check
-* Updated adult immigration to follow a normal distribution and were most of adult immigrants will be young adults
+* Fixed Exception on time data being null
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
 	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />

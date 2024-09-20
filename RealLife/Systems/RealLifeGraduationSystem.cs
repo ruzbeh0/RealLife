@@ -138,11 +138,11 @@ namespace RealLife.Systems
                     break;
                 case 3:
                     float num3 = (college_grad_prob / 100f) * math.log((float)(1.6000000238418579 * (double)num1 + 1.0)) + collegeModifier.x;
-                    num2 = (num3 + num3 * collegeModifier.y) / 100f;
+                    num2 = (num3 + college_grad_prob) / 100f;
                     break;
                 case 4:
                     float num4 = (university_grad_prob / 100f) * num1 + uniModifier.x;
-                    num2 = (num4 + num4 * uniModifier.y) / 100f;
+                    num2 = (num4 + university_grad_prob) / 100f;
                     break;
                 default:
                     num2 = 0.0f;
@@ -376,35 +376,7 @@ namespace RealLife.Systems
                                     bool graduate = false;
 
                                     int oldage = age;
-                                    //Temporary solution to negative ages. Assigning new ages based on age group
-                                    if(age < 0)
-                                    {
-                                        switch ((int)ageGroup)
-                                        {
-                                            case 0: //child
-                                                age = child_age_limit - 1;
-                                                break;
-                                            case 1: //teen
-                                                age = random.NextInt(child_age_limit + 1, teen_age_limit);
-                                                break;
-                                            case 2: //adult
-                                                age = random.NextInt(teen_age_limit + 1, adult_age_limit);
-                                                break;
-                                            case 3: //elder
-                                                age = random.NextInt(adult_age_limit + 1, male_life_expectancy);
-                                                break;
-                                            default:
-                                                age = male_life_expectancy;
-                                                break;
-                                        }
 
-                                        local.m_BirthDay = (short)(day - age);
-                                        nativeArray2[index] = local;
-                                        age = day - (int)local.m_BirthDay;
-
-                                        //Mod.log.Info($"Age:{age}, day:{day},bd:{local.m_BirthDay},group:{ageGroup}");
-
-                                    }
                                     switch (num1)
                                     {
                                         case 1: //elementary school

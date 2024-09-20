@@ -370,8 +370,9 @@ namespace RealLife.Systems
                         }
                         num5 -= this.m_DemandParameters.m_NewCitizenEducationParameters[x];
                     }
+                    
                     citizen1.m_BirthDay = (short)(TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData) - num2);
-                    //Mod.log.Info($"BirthDay:{citizen1.m_BirthDay}, Day:{TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData)},num2:{num2}");
+                    
                     this.m_Citizens[entity1] = citizen1;
                 }
             }

@@ -56,6 +56,7 @@ namespace RealLife
             //World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Serialization.CitizenSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.UI.InGame.EducationInfoviewUISystem>().Enabled = false;
 
+            updateSystem.UpdateAt<CitizenCheckSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeAgingSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeApplyToSchoolSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeGraduationSystem>(SystemUpdatePhase.GameSimulation);

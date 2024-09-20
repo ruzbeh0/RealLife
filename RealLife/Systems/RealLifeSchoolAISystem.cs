@@ -266,6 +266,7 @@ namespace RealLife.Systems
                         local.m_AverageGraduationTime = (float)(0.5 - 1.0 / (double)math.log2(1f - math.saturate(graduationProbability)));
                         local.m_AverageFailProbability = 0.0f;
                     }
+
                     local.m_StudentWellbeing = (sbyte)math.clamp((int)math.round(efficiency * (float)componentData1.m_StudentWellbeing), -100, 100);
                     local.m_StudentHealth = (sbyte)math.clamp((int)math.round(efficiency * (float)componentData1.m_StudentHealth), -100, 100);
                     if (nativeArray3.Length != 0)
