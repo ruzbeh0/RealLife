@@ -178,7 +178,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct DeathCheckJob : IJobChunk
         {
             [ReadOnly]

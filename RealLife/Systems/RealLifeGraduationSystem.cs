@@ -265,7 +265,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         public struct GraduationJob : IJobChunk
         {
             [ReadOnly]

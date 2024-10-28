@@ -90,7 +90,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct CitizenJob : IJobChunk
         {
             [DeallocateOnJobCompletion]

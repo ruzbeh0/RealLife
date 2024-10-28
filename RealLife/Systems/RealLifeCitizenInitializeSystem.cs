@@ -14,6 +14,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Game.Companies;
 using RealLife.Utils;
+using Game.City;
 
 #nullable disable
 namespace RealLife.Systems
@@ -144,7 +145,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct InitializeCitizenJob : IJob
         {
             [DeallocateOnJobCompletion]
@@ -185,6 +186,7 @@ namespace RealLife.Systems
             {
                 int daysPerYear = this.m_TimeSettings.m_DaysPerYear;
                 Random random = this.m_RandomSeed.GetRandom(0);
+                int day = TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData);
 
                 for (int index1 = 0; index1 < this.m_Entities.Length; ++index1)
                 {
@@ -370,8 +372,8 @@ namespace RealLife.Systems
                         }
                         num5 -= this.m_DemandParameters.m_NewCitizenEducationParameters[x];
                     }
-                    
-                    citizen1.m_BirthDay = (short)(TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData) - num2);
+
+                    citizen1.m_BirthDay = (short)(day - num2);
                     
                     this.m_Citizens[entity1] = citizen1;
                 }

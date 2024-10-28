@@ -134,7 +134,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct CheckBirthJob : IJobChunk
         {
             public NativeCounter.Concurrent m_DebugBirthCounter;
@@ -264,7 +264,7 @@ namespace RealLife.Systems
             }
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct SumBirthJob : IJob
         {
             public NativeCounter m_DebugBirthCount;

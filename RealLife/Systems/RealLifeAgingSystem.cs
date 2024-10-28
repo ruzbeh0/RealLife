@@ -171,7 +171,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct MoveFromHomeJob : IJob
         {
             public NativeQueue<Entity> m_MoveFromHomeQueue;
@@ -245,7 +245,7 @@ namespace RealLife.Systems
             }
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct AgingJob : IJobChunk
         {
             public NativeCounter.Concurrent m_BecomeTeenCounter;

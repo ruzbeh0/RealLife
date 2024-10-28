@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Core;
+using Game.Tools;
+using Game.Buildings;
 
 namespace RealLife.Systems
 {
@@ -25,12 +27,7 @@ namespace RealLife.Systems
 
             m_SimulationSystem = this.World.GetOrCreateSystemManaged<SimulationSystem>();
             m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<Game.Common.TimeData>());
-            _query = GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new[] {
-                    ComponentType.ReadWrite<Citizen>()
-                }
-            });
+            _query = GetEntityQuery(ComponentType.ReadWrite<Citizen>(), ComponentType.Exclude<Temp>(), ComponentType.Exclude<Deleted>());
 
             RequireForUpdate(_query);
             RequireForUpdate(m_TimeDataQuery);
@@ -44,7 +41,7 @@ namespace RealLife.Systems
             int day = TimeSystem.GetDay(this.m_SimulationFrame, m_TimeData);
             Unity.Mathematics.Random random = new Unity.Mathematics.Random(this.m_SimulationFrame);
             int counter = 0;
-            Mod.log.Info("start");
+            Mod.log.Info($"Processing {cits.Length} citizens on day:{day}");
             foreach (var ci in cits)
             {
                 Citizen data;
@@ -86,13 +83,13 @@ namespace RealLife.Systems
                 }
             }
             Mod.log.Info($"Fixed {counter} citizen ages");
-            Enabled = false;
+            //Enabled = false;
         }
 
         public override int GetUpdateInterval(SystemUpdatePhase phase)
         {
             // One day (or month) in-game is '262144' ticks
-            return 262144 / 8;
+            return 262144 / 64;
         }
     }
 }

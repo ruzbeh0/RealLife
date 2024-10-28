@@ -7,6 +7,7 @@ using Game.Common;
 using Game.Companies;
 using Game.Economy;
 using Game.Net;
+using Game.Net;
 using Game.Pathfind;
 using Game.Prefabs;
 using Game.Triggers;
@@ -190,7 +191,7 @@ namespace RealLife.Systems
         {
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct FindSchoolJob : IJobChunk
         {
             [ReadOnly]
@@ -286,16 +287,9 @@ namespace RealLife.Systems
                             setupQueueTarget.m_Value = level;
                             setupQueueTarget.m_Entity = district;
                             SetupQueueTarget destination = setupQueueTarget;
-                            DynamicBuffer<OwnedVehicle> bufferData;
-                            if (citizen.GetAge() != CitizenAge.Child && this.m_OwnedVehicles.TryGetBuffer(household1, out bufferData) && bufferData.Length != 0)
+                            if (citizen.GetAge() != CitizenAge.Child)
                             {
-                                parameters.m_Methods |= PathMethod.Road | PathMethod.Parking;
-                                parameters.m_ParkingLength = float.MinValue;
-                                parameters.m_IgnoredRules |= RuleFlags.ForbidCombustionEngines | RuleFlags.ForbidHeavyTraffic | RuleFlags.ForbidSlowTraffic;
-                                origin.m_Methods |= PathMethod.Road;
-                                origin.m_RoadTypes |= RoadTypes.Car;
-                                destination.m_Methods |= PathMethod.Road;
-                                destination.m_RoadTypes |= RoadTypes.Car;
+                                PathUtils.UpdateOwnedVehicleMethods(household1, ref this.m_OwnedVehicles, ref parameters, ref origin, ref destination);
                             }
                             this.m_PathfindQueue.Enqueue(new SetupQueueItem(entity, parameters, origin, destination));
                         }
@@ -313,7 +307,7 @@ namespace RealLife.Systems
             }
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         private struct StartStudyingJob : IJob
         {
             [ReadOnly]
