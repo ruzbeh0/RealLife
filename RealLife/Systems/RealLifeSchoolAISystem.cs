@@ -149,7 +149,7 @@ namespace RealLife.Systems
         {
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct SchoolTickJob : IJobChunk
         {
             [ReadOnly]

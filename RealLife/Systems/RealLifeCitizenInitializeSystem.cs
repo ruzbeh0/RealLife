@@ -15,6 +15,7 @@ using Unity.Mathematics;
 using Game.Companies;
 using RealLife.Utils;
 using Game.City;
+using Game.Agents;
 
 #nullable disable
 namespace RealLife.Systems
@@ -56,6 +57,7 @@ namespace RealLife.Systems
             this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup.Update(ref this.CheckedStateRef);
+            this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup.Update(ref this.CheckedStateRef);
@@ -73,6 +75,7 @@ namespace RealLife.Systems
                 m_HouseholdCitizens = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup,
                 m_Arriveds = this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup,
                 m_CarKeepers = this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup,
+                m_HasJobSeekers = this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup,
                 m_MailSenders = this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup,
                 m_CrimeVictims = this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup,
                 m_CitizenDatas = this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup,
@@ -145,7 +148,7 @@ namespace RealLife.Systems
         {
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct InitializeCitizenJob : IJob
         {
             [DeallocateOnJobCompletion]
@@ -161,6 +164,7 @@ namespace RealLife.Systems
             public ComponentLookup<Arrived> m_Arriveds;
             public ComponentLookup<CrimeVictim> m_CrimeVictims;
             public ComponentLookup<CarKeeper> m_CarKeepers;
+            public ComponentLookup<HasJobSeeker> m_HasJobSeekers;
             public ComponentLookup<MailSender> m_MailSenders;
             [ReadOnly]
             public ComponentLookup<CitizenData> m_CitizenDatas;
@@ -195,6 +199,7 @@ namespace RealLife.Systems
                     this.m_MailSenders.SetComponentEnabled(entity1, false);
                     this.m_CrimeVictims.SetComponentEnabled(entity1, false);
                     this.m_CarKeepers.SetComponentEnabled(entity1, false);
+                    this.m_HasJobSeekers.SetComponentEnabled(entity1, false);
                     Citizen citizen1 = this.m_Citizens[entity1];
                     Entity household = this.m_HouseholdMembers[index1].m_Household;
                     bool flag = (citizen1.m_State & CitizenFlags.Commuter) != 0;
@@ -373,6 +378,7 @@ namespace RealLife.Systems
                         num5 -= this.m_DemandParameters.m_NewCitizenEducationParameters[x];
                     }
 
+                    //Mod.log.Info($"Age:{num2}, Birthday:{citizen1.m_BirthDay}, day:{day}");
                     citizen1.m_BirthDay = (short)(day - num2);
                     
                     this.m_Citizens[entity1] = citizen1;
@@ -386,6 +392,7 @@ namespace RealLife.Systems
             public BufferLookup<HouseholdCitizen> __Game_Citizens_HouseholdCitizen_RW_BufferLookup;
             public ComponentLookup<Arrived> __Game_Citizens_Arrived_RW_ComponentLookup;
             public ComponentLookup<CarKeeper> __Game_Citizens_CarKeeper_RW_ComponentLookup;
+            public ComponentLookup<HasJobSeeker> __Game_Agents_HasJobSeeker_RW_ComponentLookup;
             public ComponentLookup<MailSender> __Game_Citizens_MailSender_RW_ComponentLookup;
             public ComponentLookup<CrimeVictim> __Game_Citizens_CrimeVictim_RW_ComponentLookup;
             [ReadOnly]
@@ -398,6 +405,7 @@ namespace RealLife.Systems
                 this.__Game_Citizens_HouseholdCitizen_RW_BufferLookup = state.GetBufferLookup<HouseholdCitizen>();
                 this.__Game_Citizens_Arrived_RW_ComponentLookup = state.GetComponentLookup<Arrived>();
                 this.__Game_Citizens_CarKeeper_RW_ComponentLookup = state.GetComponentLookup<CarKeeper>();
+                this.__Game_Agents_HasJobSeeker_RW_ComponentLookup = state.GetComponentLookup<HasJobSeeker>();
                 this.__Game_Citizens_MailSender_RW_ComponentLookup = state.GetComponentLookup<MailSender>();
                 this.__Game_Citizens_CrimeVictim_RW_ComponentLookup = state.GetComponentLookup<CrimeVictim>();
                 this.__Game_Prefabs_CitizenData_RO_ComponentLookup = state.GetComponentLookup<CitizenData>(true);

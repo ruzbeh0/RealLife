@@ -356,7 +356,7 @@ namespace RealLife.Systems
             Count,
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct UpdateEducationDataJob : IJobChunk
         {
             [ReadOnly]
@@ -435,7 +435,7 @@ namespace RealLife.Systems
             }
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct UpdateStudentCountsJob : IJobChunk
         {
             [ReadOnly]
@@ -550,7 +550,7 @@ namespace RealLife.Systems
             }
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct UpdateEligibilityJob : IJobChunk
         {
             [ReadOnly]

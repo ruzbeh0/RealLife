@@ -191,7 +191,7 @@ namespace RealLife.Systems
         {
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct FindSchoolJob : IJobChunk
         {
             [ReadOnly]
@@ -307,7 +307,7 @@ namespace RealLife.Systems
             }
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         private struct StartStudyingJob : IJob
         {
             [ReadOnly]

@@ -129,7 +129,7 @@ namespace RealLife.Systems
             if (age == CitizenAge.Child || age == CitizenAge.Elderly)
                 return 0.0f;
             if (level == 2)
-                return !(age == CitizenAge.Adult | worker) ? educationParameterData.m_EnterHighSchoolProbability : educationParameterData.m_AdultEnterHighSchoolProbability;
+                return !(age == CitizenAge.Adult) ? educationParameterData.m_EnterHighSchoolProbability : educationParameterData.m_AdultEnterHighSchoolProbability;
             float num = (float)((double)wellbeing / 60.0 * (0.5 + (double)willingness));
             if (level == 3)
                 return (float)(0.5 * (worker ? (double)educationParameterData.m_WorkerContinueEducationProbability : 1.0)) * math.log((float)(1.6000000238418579 * (double)num + 1.0));
@@ -193,7 +193,7 @@ namespace RealLife.Systems
         {
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         public struct ApplyToSchoolJob : IJobChunk
         {
             [ReadOnly]
@@ -279,7 +279,7 @@ namespace RealLife.Systems
                             float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
 
                             float enteringProbability = RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray3.IsCreated, (int)level, (int)citizen.m_WellBeing, willingness, cityModifier, ref this.m_EducationParameters);
-
+                            //Mod.log.Info($"BD:{(int)citizen.m_BirthDay},Age:{age},agedays:{age_in_days},enterprob:{enteringProbability},level:{level}, worker:{nativeArray3.IsCreated},wellbeing:{citizen.m_WellBeing}");
                             if (this.m_DebugFastApplySchool || (double)random.NextFloat(1f) < (double)enteringProbability)
                             {
                                 if (this.m_PropertyRenters.HasComponent(household) && !this.m_TouristHouseholds.HasComponent(household) && !this.m_MovingAways.HasComponent(household))
