@@ -380,28 +380,23 @@ namespace RealLife.Systems
                                     switch (num1)
                                     {
                                         case 1: //elementary school
-                                            graduate = age >= child_age_limit;
+                                            graduate = age >= child_age_limit - 1;
                                             break;
                                         case 2: //high school
-                                            graduate = age >= teen_age_limit;
+                                            graduate = age >= teen_age_limit - 1;
                                             break;
                                         case 3: //college
-                                            graduate = (age - teen_age_limit) > years_in_college;
+                                            graduate = (age - teen_age_limit) >= years_in_college;
                                             break;
                                         case 4: //university
-                                            graduate = (age - teen_age_limit) > (years_in_college + years_in_university);
+                                            graduate = (age - teen_age_limit) >= (years_in_college + years_in_university);
                                             break;
                                         default:
                                             break;
-                                    }                                   
+                                    }
 
                                     if (graduate)
                                     {
-                                        //if(num1 == 1)
-                                        //{
-                                        //    Mod.log.Info($"Graduated:{graduate}, level:{num1},ageGroup:{ageGroup},oldage:{oldage},age:{age},day:{day}");
-                                        //}
-                                        
                                         ref Citizen local2 = ref nativeArray2.ElementAt<Citizen>(index);
                                         int age2 = day - (int)local.m_BirthDay;                                       
                                         
@@ -411,7 +406,7 @@ namespace RealLife.Systems
                                             this.LeaveSchool(unfilteredChunkIndex, entity, school);
                                             this.m_TriggerBuffer.Enqueue(new TriggerAction(TriggerType.CitizenGraduated, Entity.Null, entity, school));
                                         }
-                                    } 
+                                    }
                                 }
                                 else if (num1 > 2)
                                 {

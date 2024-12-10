@@ -58,11 +58,11 @@ This section has a few options to adjust the game birth and relationship paramet
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
 	<!--Version of the mod-->
-	<ModVersion Value="0.5.2" />
+	<ModVersion Value="0.5.3" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.1.*" />
 	<ChangeLog>
-* Updated High School Entering Probability for Teens: having a job will no longer change the entering school probability.
+* Fixed bug that was preventing children from graduating elementary school. 
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
 	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />
