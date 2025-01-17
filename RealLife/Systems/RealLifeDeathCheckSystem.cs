@@ -26,6 +26,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using System;
+using Unity.Core;
 
 #nullable disable
 namespace RealLife.Systems
@@ -65,7 +66,7 @@ namespace RealLife.Systems
             this.m_DeathCheckQuery = this.GetEntityQuery(ComponentType.ReadOnly<Citizen>(), ComponentType.ReadOnly<UpdateFrame>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>());
             this.m_HealthcareSettingsQuery = this.GetEntityQuery(ComponentType.ReadOnly<HealthcareParameterData>());
             this.m_TimeSettingsQuery = this.GetEntityQuery(ComponentType.ReadOnly<TimeSettingsData>());
-            this.m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<TimeData>());
+            this.m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<Game.Common.TimeData>());
             this.RequireForUpdate(this.m_DeathCheckQuery);
             this.RequireForUpdate(this.m_HealthcareSettingsQuery);
         }
@@ -125,10 +126,10 @@ namespace RealLife.Systems
                 m_PatientsRecoveredCounter = this.m_AchievementTriggerSystem.m_PatientsTreatedCounter.ToConcurrent(),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
                 m_TimeSettings = this.m_TimeSettingsQuery.GetSingleton<TimeSettingsData>(),
-                m_TimeData = this.m_TimeDataQuery.GetSingleton<TimeData>(),
                 male_life_expectancy = Mod.m_Setting.male_life_expectancy,
                 female_life_expectancy = Mod.m_Setting.female_life_expectancy,
-                corpse_vanish = Mod.m_Setting.corpse_vanish
+                corpse_vanish = Mod.m_Setting.corpse_vanish,
+                day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<Game.Common.TimeData>())
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeDeathCheckSystem.DeathCheckJob>(this.m_DeathCheckQuery, JobHandle.CombineDependencies(this.Dependency, deps));
             this.m_IconCommandSystem.AddCommandBufferWriter(this.Dependency);
@@ -228,11 +229,11 @@ namespace RealLife.Systems
             public EntityCommandBuffer.ParallelWriter m_CommandBuffer;
             public NativeCounter.Concurrent m_PatientsRecoveredCounter;
             public TimeSettingsData m_TimeSettings;
-            public TimeData m_TimeData;
             public uint m_SimulationFrame;
             public int female_life_expectancy;
             public int male_life_expectancy;
             public int corpse_vanish;
+            public int day;
 
             private void Die(
               ArchetypeChunk chunk,
@@ -330,7 +331,7 @@ namespace RealLife.Systems
                     if (!nativeArray2.IsCreated || (nativeArray2[index].m_Flags & HealthProblemFlags.Dead) == HealthProblemFlags.None)
                     {
                         //Citizen can die based on average life expectancy
-                        int age = TimeSystem.GetDay(m_SimulationFrame, m_TimeData) - citizen.m_BirthDay;
+                        int age = day - citizen.m_BirthDay;
                         int lifeExpectancy = female_life_expectancy;
                         if((citizen.m_State & CitizenFlags.Male) != CitizenFlags.None)
                         {

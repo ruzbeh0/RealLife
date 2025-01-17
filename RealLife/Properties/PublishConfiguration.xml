@@ -58,11 +58,16 @@ This section has a few options to adjust the game birth and relationship paramet
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
 	<!--Version of the mod-->
-	<ModVersion Value="0.5.3" />
+	<ModVersion Value="0.6.1" />
 	<!--Recommended version of the base game to use the mod-->
-	<GameVersion Value="1.1.*" />
+	<GameVersion Value="1.2.*" />
 	<ChangeLog>
-* Fixed bug that was preventing children from graduating elementary school. 
+* Fixed bug with burst compile in apply to school system
+* Fixed bug with burst compile in aging system
+* Fixed bug with burst compile in citizen initialize system
+* Fixed bug with burst compile in death check system
+* Fixed bug with burst compile in graduation system
+* Disabled citizen check system
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
 	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />

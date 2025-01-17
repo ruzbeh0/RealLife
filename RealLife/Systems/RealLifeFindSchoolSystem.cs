@@ -137,7 +137,6 @@ namespace RealLife.Systems
                 m_Employees = this.__TypeHandle.__Game_Companies_Employee_RW_BufferLookup,
                 m_City = this.m_CitySystem.City,
                 m_EconomyParameters = this.__query_17488131_0.GetSingleton<EconomyParameterData>(),
-                m_TimeData = this.__query_17488131_1.GetSingleton<TimeData>(),
                 m_RandomSeed = RandomSeed.Next(),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
                 m_DebugFastFindSchool = this.debugFastFindSchool,
@@ -350,7 +349,6 @@ namespace RealLife.Systems
             public uint m_SimulationFrame;
             public Entity m_City;
             public EconomyParameterData m_EconomyParameters;
-            public TimeData m_TimeData;
             public EntityCommandBuffer m_CommandBuffer;
             public RandomSeed m_RandomSeed;
             public bool m_DebugFastFindSchool;

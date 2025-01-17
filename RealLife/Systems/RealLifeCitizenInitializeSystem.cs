@@ -81,7 +81,6 @@ namespace RealLife.Systems
                 m_CitizenDatas = this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup,
                 m_DemandParameters = this.m_DemandParameterQuery.GetSingleton<DemandParameterData>(),
                 m_TimeSettings = this.m_TimeSettingGroup.GetSingleton<TimeSettingsData>(),
-                m_TimeData = this.m_TimeDataQuery.GetSingleton<TimeData>(),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
                 m_RandomSeed = RandomSeed.Next(),
                 m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer(),
@@ -92,7 +91,8 @@ namespace RealLife.Systems
                 female_life_expectancy = Mod.m_Setting.female_life_expectancy,
                 male_life_expectancy = Mod.m_Setting.male_life_expectancy,
                 elementary_grad_prob = Mod.m_Setting.elementary_grad_prob,
-                m_FreeWorkplaces = this.m_CountWorkplacesSystem.GetFreeWorkplaces()
+                m_FreeWorkplaces = this.m_CountWorkplacesSystem.GetFreeWorkplaces(),
+                day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
             this.Dependency = jobData.Schedule<RealLifeCitizenInitializeSystem.InitializeCitizenJob>(JobHandle.CombineDependencies(this.Dependency, outJobHandle));
             this.m_EndFrameBarrier.AddJobHandleForProducer(this.Dependency);
@@ -172,8 +172,6 @@ namespace RealLife.Systems
             [ReadOnly]
             public RandomSeed m_RandomSeed;
             public uint m_SimulationFrame;
-            [DeallocateOnJobCompletion]
-            public TimeData m_TimeData;
             public DemandParameterData m_DemandParameters;
             public TimeSettingsData m_TimeSettings;
             public EntityCommandBuffer m_CommandBuffer;
@@ -185,12 +183,12 @@ namespace RealLife.Systems
             public int elementary_grad_prob;
             [ReadOnly]
             public Workplaces m_FreeWorkplaces;
+            public int day;
 
             public void Execute()
             {
                 int daysPerYear = this.m_TimeSettings.m_DaysPerYear;
                 Random random = this.m_RandomSeed.GetRandom(0);
-                int day = TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData);
 
                 for (int index1 = 0; index1 < this.m_Entities.Length; ++index1)
                 {
@@ -274,6 +272,10 @@ namespace RealLife.Systems
                         }
 
                         num2 = teentAgeLimitInDays + median_point + age_offset;
+                        if(num2 > adultAgeLimitInDays)
+                        {
+                            num2 = adultAgeLimitInDays;
+                        }
                         //Mod.log.Info($"Adult Immigrant age: {num2}, ageVar:{ageVariation}, ageOff:{age_offset}, medpoint:{median_point}");
                         citizen1.SetAge(CitizenAge.Adult);
                         
@@ -348,9 +350,9 @@ namespace RealLife.Systems
                     {
                         // Adult age must be between teen age limit and adult retirement age
                         int adultAgeLimitInDays = adult_age_limit;
-                        int teentAgeLimitInDays = teen_age_limit;
+                        int teenAgeLimitInDays = teen_age_limit;
                         
-                        num2 = teentAgeLimitInDays + random.NextInt(adultAgeLimitInDays - teentAgeLimitInDays);
+                        num2 = teenAgeLimitInDays + random.NextInt(adultAgeLimitInDays - teenAgeLimitInDays);
                         citizen1.SetAge(CitizenAge.Adult);
                         int2 = new int2(2, 3);
                     }
@@ -378,7 +380,7 @@ namespace RealLife.Systems
                         num5 -= this.m_DemandParameters.m_NewCitizenEducationParameters[x];
                     }
 
-                    //Mod.log.Info($"Age:{num2}, Birthday:{citizen1.m_BirthDay}, day:{day}");
+                    //Mod.log.Info($"Age:{num2}, Birthday:{citizen1.m_BirthDay}, new bd:{(short)(day - num2)}, day:{day}, AGE GROUP:{citizen1.GetAge()}");
                     citizen1.m_BirthDay = (short)(day - num2);
                     
                     this.m_Citizens[entity1] = citizen1;

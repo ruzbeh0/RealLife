@@ -32,8 +32,9 @@ namespace RealLife.Systems
         private TriggerSystem m_TriggerSystem;
         private EntityQuery m_StudentQuery;
         private RealLifeGraduationSystem.TypeHandle __TypeHandle;
-        private EntityQuery __query_1855827631_0;
-        private EntityQuery __query_1855827631_1;
+        private EntityQuery m_TimeDataQuery;
+        private EntityQuery m_EconomyParameterQuery;
+
 
         public override int GetUpdateInterval(SystemUpdatePhase phase) => 16384;
 
@@ -159,6 +160,8 @@ namespace RealLife.Systems
             this.m_SimulationSystem = this.World.GetOrCreateSystemManaged<SimulationSystem>();
             this.m_EndFrameBarrier = this.World.GetOrCreateSystemManaged<EndFrameBarrier>();
             this.m_TriggerSystem = this.World.GetOrCreateSystemManaged<TriggerSystem>();
+            this.m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<TimeData>());
+            this.m_EconomyParameterQuery = this.GetEntityQuery(ComponentType.ReadOnly<EconomyParameterData>());
             this.m_CitySystem = this.World.GetOrCreateSystemManaged<CitySystem>();
             this.m_StudentQuery = this.GetEntityQuery(ComponentType.ReadOnly<Game.Citizens.Student>(), ComponentType.ReadWrite<Citizen>(), ComponentType.ReadOnly<UpdateFrame>());
             this.RequireForUpdate(this.m_StudentQuery);
@@ -197,8 +200,8 @@ namespace RealLife.Systems
                 m_Fees = this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup,
                 m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
                 m_TriggerBuffer = this.m_TriggerSystem.CreateActionBuffer().AsParallelWriter(),
-                m_EconomyParameters = this.__query_1855827631_0.GetSingleton<EconomyParameterData>(),
-                m_TimeData = this.__query_1855827631_1.GetSingleton<TimeData>(),
+                m_EconomyParameters = this.m_EconomyParameterQuery.GetSingleton<EconomyParameterData>(),
+                m_TimeData = this.m_TimeDataQuery.GetSingleton<TimeData>(),
                 m_RandomSeed = RandomSeed.Next(),
                 m_City = this.m_CitySystem.City,
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
@@ -215,7 +218,8 @@ namespace RealLife.Systems
                 university_grad_probability = Mod.m_Setting.university_grad_prob,
                 male_life_expectancy = Mod.m_Setting.male_life_expectancy,
                 female_life_expectancy = Mod.m_Setting.female_life_expectancy,
-                college_in_univ_prob = Mod.m_Setting.college_edu_in_univ
+                college_in_univ_prob = Mod.m_Setting.college_edu_in_univ,
+                day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
 
             this.Dependency = jobData.ScheduleParallel<RealLifeGraduationSystem.GraduationJob>(this.m_StudentQuery, this.Dependency);
@@ -223,40 +227,9 @@ namespace RealLife.Systems
             this.m_TriggerSystem.AddActionBufferWriter(this.Dependency);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void __AssignQueries(ref SystemState state)
-        {
-            this.__query_1855827631_0 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<EconomyParameterData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-
-            this.__query_1855827631_1 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<TimeData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-        }
-
         protected override void OnCreateForCompiler()
         {
             base.OnCreateForCompiler();
-            this.__AssignQueries(ref this.CheckedStateRef);
             this.__TypeHandle.__AssignHandles(ref this.CheckedStateRef);
         }
 
@@ -310,6 +283,7 @@ namespace RealLife.Systems
             public float college_grad_probability;
             public float university_grad_probability;
             public int college_in_univ_prob;
+            public int day;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -326,7 +300,7 @@ namespace RealLife.Systems
                 NativeArray<Entity> nativeArray3 = chunk.GetNativeArray(this.m_EntityType);
                 DynamicBuffer<CityModifier> cityModifier = this.m_CityModifiers[this.m_City];
                 Unity.Mathematics.Random random = this.m_RandomSeed.GetRandom(unfilteredChunkIndex);
-                int day = TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData);
+
                 for (int index = 0; index < chunk.Count; ++index)
                 {
                     Entity entity = nativeArray3[index];
@@ -380,10 +354,10 @@ namespace RealLife.Systems
                                     switch (num1)
                                     {
                                         case 1: //elementary school
-                                            graduate = age >= child_age_limit - 1;
+                                            graduate = age >= child_age_limit;
                                             break;
                                         case 2: //high school
-                                            graduate = age >= teen_age_limit - 1;
+                                            graduate = age >= teen_age_limit;
                                             break;
                                         case 3: //college
                                             graduate = (age - teen_age_limit) >= years_in_college;
@@ -401,7 +375,7 @@ namespace RealLife.Systems
                                         int age2 = day - (int)local.m_BirthDay;                                       
                                         
                                         local.SetEducationLevel(Mathf.Max(local.GetEducationLevel(), num1));
-                                        if (this.m_DebugFastGraduationLevel != 0 || num1 > 1)
+                                        if (this.m_DebugFastGraduationLevel != 0 || num1 >= 1)
                                         {
                                             this.LeaveSchool(unfilteredChunkIndex, entity, school);
                                             this.m_TriggerBuffer.Enqueue(new TriggerAction(TriggerType.CitizenGraduated, Entity.Null, entity, school));

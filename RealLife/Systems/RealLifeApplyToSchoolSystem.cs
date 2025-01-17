@@ -1,4 +1,5 @@
 ﻿
+using Colossal.UI;
 using Game;
 using Game.Agents;
 using Game.Buildings;
@@ -29,9 +30,9 @@ namespace RealLife.Systems
         private EndFrameBarrier m_EndFrameBarrier;
         private CitySystem m_CitySystem;
         private RealLifeApplyToSchoolSystem.TypeHandle __TypeHandle;
-        private EntityQuery __query_2069025490_0;
-        private EntityQuery __query_2069025490_1;
-        private EntityQuery __query_2069025490_2;
+        private EntityQuery m_EconomyParameterQuery;
+        private EntityQuery m_TimeDataQuery;
+        private EntityQuery m_EducationParameterQuery;
 
         public override int GetUpdateInterval(SystemUpdatePhase phase) => 512;
 
@@ -42,6 +43,11 @@ namespace RealLife.Systems
             this.m_SimulationSystem = this.World.GetOrCreateSystemManaged<SimulationSystem>();
             this.m_EndFrameBarrier = this.World.GetOrCreateSystemManaged<EndFrameBarrier>();
             this.m_CitySystem = this.World.GetOrCreateSystemManaged<CitySystem>();
+            this.m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<TimeData>());
+            this.m_EconomyParameterQuery = this.GetEntityQuery(ComponentType.ReadOnly<EconomyParameterData>());
+            this.m_EducationParameterQuery = this.GetEntityQuery(ComponentType.ReadOnly<EducationParameterData>());
+
+
             this.m_CitizenGroup = this.GetEntityQuery(new EntityQueryDesc()
             {
                 All = new ComponentType[2]
@@ -102,14 +108,14 @@ namespace RealLife.Systems
                 m_SchoolSeekerCooldowns = this.__TypeHandle.__Game_Citizens_SchoolSeekerCooldown_RO_ComponentLookup,
                 m_RandomSeed = RandomSeed.Next(),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
-                m_EconomyParameters = this.__query_2069025490_0.GetSingleton<EconomyParameterData>(),
-                m_EducationParameters = this.__query_2069025490_1.GetSingleton<EducationParameterData>(),
-                m_TimeData = this.__query_2069025490_2.GetSingleton<TimeData>(),
+                m_EconomyParameters = this.m_EconomyParameterQuery.GetSingleton<EconomyParameterData>(),
+                m_EducationParameters = this.m_EducationParameterQuery.GetSingleton<EducationParameterData>(),
                 m_City = this.m_CitySystem.City,
                 m_UpdateFrameIndex = frameWithInterval,
                 m_DebugFastApplySchool = this.debugFastApplySchool,
                 m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
-                child_school_start_age = Mod.m_Setting.child_school_start_age
+                child_school_start_age = Mod.m_Setting.child_school_start_age,
+                day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeApplyToSchoolSystem.ApplyToSchoolJob>(this.m_CitizenGroup, this.Dependency);
             this.m_EndFrameBarrier.AddJobHandleForProducer(this.Dependency);
@@ -140,51 +146,9 @@ namespace RealLife.Systems
             return enteringProbability;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void __AssignQueries(ref SystemState state)
-        {
-            this.__query_2069025490_0 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<EconomyParameterData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-            this.__query_2069025490_1 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<EducationParameterData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-            this.__query_2069025490_2 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<TimeData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-        }
-
         protected override void OnCreateForCompiler()
         {
             base.OnCreateForCompiler();
-            this.__AssignQueries(ref this.CheckedStateRef);
             this.__TypeHandle.__AssignHandles(ref this.CheckedStateRef);
         }
 
@@ -232,10 +196,10 @@ namespace RealLife.Systems
             public uint m_SimulationFrame;
             public EconomyParameterData m_EconomyParameters;
             public EducationParameterData m_EducationParameters;
-            public TimeData m_TimeData;
             public bool m_DebugFastApplySchool;
             public EntityCommandBuffer.ParallelWriter m_CommandBuffer;
             public int child_school_start_age;
+            public int day;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -251,8 +215,6 @@ namespace RealLife.Systems
                 DynamicBuffer<CityModifier> cityModifier = this.m_CityModifiers[this.m_City];
                 Random random = this.m_RandomSeed.GetRandom(unfilteredChunkIndex);
 
-                int day = TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData);
-
                 for (int index = 0; index < chunk.Count; ++index)
                 {
                     Citizen citizen = nativeArray2[index];
@@ -266,22 +228,23 @@ namespace RealLife.Systems
                         int failedEducationCount = citizen.GetFailedEducationCount();
                         if (failedEducationCount == 0 && age > CitizenAge.Teen && level == SchoolLevel.College)
                             level = SchoolLevel.University;
+
                         bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level >= SchoolLevel.HighSchool && level < SchoolLevel.College || age == CitizenAge.Adult && level >= SchoolLevel.HighSchool;
-                        //if(age_in_days < 0)
-                        //{
-                        //    Mod.log.Info($"FF:{this.m_SimulationFrame},BD:{(int)citizen.m_BirthDay},Age:{age},agedays:{age_in_days},child_school_start_age:{child_school_start_age},flag:{flag}");
-                        //}
                         
                         Entity household = this.m_HouseholdMembers[nativeArray1[index]].m_Household;
 
                         if (this.m_DebugFastApplySchool || flag && CitizenUtils.HasMovedIn(household, this.m_HouseholdDatas))
                         {
-                            float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
-
+                            float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();      
                             float enteringProbability = RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray3.IsCreated, (int)level, (int)citizen.m_WellBeing, willingness, cityModifier, ref this.m_EducationParameters);
-                            //Mod.log.Info($"BD:{(int)citizen.m_BirthDay},Age:{age},agedays:{age_in_days},enterprob:{enteringProbability},level:{level}, worker:{nativeArray3.IsCreated},wellbeing:{citizen.m_WellBeing}");
+                            
                             if (this.m_DebugFastApplySchool || (double)random.NextFloat(1f) < (double)enteringProbability)
                             {
+                                //if(age == CitizenAge.Teen)
+                                //{
+                                //    Mod.log.Info($"age_in_days:{age_in_days}, age:{age}, bd:{citizen.m_BirthDay}");
+                                //}
+                                //Mod.log.Info($"Apply: age:{age}, age_in_days:{age_in_days}, level:{level}, debug:{this.m_DebugFastApplySchool}");
                                 if (this.m_PropertyRenters.HasComponent(household) && !this.m_TouristHouseholds.HasComponent(household) && !this.m_MovingAways.HasComponent(household))
                                 {
                                     Entity property = this.m_PropertyRenters[household].m_Property;

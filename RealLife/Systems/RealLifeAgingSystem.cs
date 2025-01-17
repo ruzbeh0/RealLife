@@ -122,7 +122,8 @@ namespace RealLife.Systems
                 m_DebugAgeAllCitizens = AgingSystem.s_DebugAgeAllCitizens,
                 child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
-                adult_age_limit = Mod.m_Setting.adult_age_limit
+                adult_age_limit = Mod.m_Setting.adult_age_limit,
+                day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
             this.Dependency = jobData1.ScheduleParallel<RealLifeAgingSystem.AgingJob>(this.m_CitizenGroup, this.Dependency);
             this.m_EndFrameBarrier.AddJobHandleForProducer(this.Dependency);
@@ -271,6 +272,7 @@ namespace RealLife.Systems
             public int child_age_limit;
             public int teen_age_limit;
             public int adult_age_limit;
+            public int day;
 
             private void LeaveSchool(
               int chunkIndex,
@@ -297,13 +299,13 @@ namespace RealLife.Systems
                 NativeArray<Citizen> nativeArray2 = chunk.GetNativeArray<Citizen>(ref this.m_CitizenType);
                 NativeArray<Game.Citizens.Student> nativeArray3 = chunk.GetNativeArray<Game.Citizens.Student>(ref this.m_StudentType);
 
-                int day = TimeSystem.GetDay(this.m_SimulationFrame, this.m_TimeData);
                 for (int index = 0; index < nativeArray1.Length; ++index)
                 {
                     Citizen citizen = nativeArray2[index];
                     CitizenAge age = citizen.GetAge();
                     int num1 = day - (int)citizen.m_BirthDay;
-                    int num2;
+                    int num2 = 0;
+                    
                     switch (age)
                     {
                         case CitizenAge.Child:
@@ -318,9 +320,12 @@ namespace RealLife.Systems
                         default:
                             continue;
                     }
+
                     if (num1 >= num2)
                     {
+                        //Mod.log.Info($"num1:{num1},num2:{num2},AGE:{age}");
                         Entity entity = nativeArray1[index];
+                        
                         switch (age)
                         {
                             case CitizenAge.Child:
