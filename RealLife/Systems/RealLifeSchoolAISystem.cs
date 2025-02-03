@@ -28,6 +28,7 @@ namespace RealLife.Systems
         private EntityQuery __query_1235104412_0;
         private EntityQuery __query_1235104412_1;
         private EntityQuery __query_1235104412_2;
+        private EntityQuery m_TimeDataQuery;
 
         public override int GetUpdateInterval(SystemUpdatePhase phase) => 256;
 
@@ -41,6 +42,7 @@ namespace RealLife.Systems
             this.m_CitySystem = this.World.GetOrCreateSystemManaged<CitySystem>();
             this.m_EndFrameBarrier = this.World.GetOrCreateSystemManaged<EndFrameBarrier>();
             this.m_SchoolQuery = this.GetEntityQuery(ComponentType.ReadWrite<Game.Buildings.School>(), ComponentType.ReadWrite<Game.Buildings.Student>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Temp>(), ComponentType.Exclude<Deleted>());
+            this.m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<Game.Common.TimeData>());
             this.RequireForUpdate(this.m_SchoolQuery);
             this.RequireForUpdate<EconomyParameterData>();
             this.RequireForUpdate<EducationParameterData>();
@@ -90,7 +92,8 @@ namespace RealLife.Systems
                 high_grad_probability = Mod.m_Setting.high_grad_prob,
                 college_grad_probability = Mod.m_Setting.college_grad_prob,
                 university_grad_probability = Mod.m_Setting.university_grad_prob,
-                adult_age_limit = Mod.m_Setting.adult_age_limit
+                adult_age_limit = Mod.m_Setting.adult_age_limit,
+                day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<Game.Common.TimeData>())
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeSchoolAISystem.SchoolTickJob>(this.m_SchoolQuery, this.Dependency);
             this.m_EndFrameBarrier.AddJobHandleForProducer(this.Dependency);
@@ -187,6 +190,7 @@ namespace RealLife.Systems
             public float college_grad_probability;
             public float university_grad_probability;
             public int adult_age_limit;
+            public int day;
 
             public void Execute(
               in ArchetypeChunk chunk,
@@ -235,7 +239,7 @@ namespace RealLife.Systems
                             else
                             {
                                 int failedEducationCount = componentData3.GetFailedEducationCount();
-                                float ageInDays = componentData3.GetAgeInDays(this.m_SimulationFrame, this.m_TimeData);
+                                float ageInDays = day - componentData3.m_BirthDay;
                                 float graduationProbability = RealLifeGraduationSystem.GetGraduationProbability((int)componentData2.m_Level, (int)componentData3.m_WellBeing, componentData1, cityModifier, 0.5f, efficiency, elementary_grad_probability, high_grad_probability, college_grad_probability, university_grad_probability);
                                 if ((double)graduationProbability > 1.0 / 1000.0)
                                 {

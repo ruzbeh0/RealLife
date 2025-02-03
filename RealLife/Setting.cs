@@ -44,7 +44,7 @@ namespace RealLife
             university_grad_prob = 85;
             enter_high_school_prob = 88;
             adult_enter_high_school_prob = 10;
-            worker_continue_education = 0;
+            worker_continue_education = 70;
             student_birth_rate_adjuster = 0;
             base_birth_rate_adjuster = 0;
             adult_female_birth_rate_bonus_adjuster = 0;

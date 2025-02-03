@@ -343,13 +343,12 @@ namespace RealLife.Systems
                             float studyWillingness = local.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
                             float efficiency = BuildingUtils.GetEfficiency(school, ref this.m_BuildingEfficiencies);
                             float graduationProbability = RealLifeGraduationSystem.GetGraduationProbability(num1, wellBeing, schoolData, cityModifier, studyWillingness, efficiency, elementary_grad_probability, high_grad_probability, college_grad_probability, university_grad_probability);
+                            //Mod.log.Info($"age:{age},graduationProbability:{graduationProbability},num1:{num1}");
                             if (this.m_DebugFastGraduationLevel == 0 || this.m_DebugFastGraduationLevel == num1)
                             {
                                 if (this.m_DebugFastGraduationLevel == num1 || (double)random.NextFloat() < (double)graduationProbability)
                                 {
                                     bool graduate = false;
-
-                                    int oldage = age;
 
                                     switch (num1)
                                     {

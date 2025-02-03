@@ -138,10 +138,10 @@ namespace RealLife.Systems
                 return !(age == CitizenAge.Adult) ? educationParameterData.m_EnterHighSchoolProbability : educationParameterData.m_AdultEnterHighSchoolProbability;
             float num = (float)((double)wellbeing / 60.0 * (0.5 + (double)willingness));
             if (level == 3)
-                return (float)(0.5 * (worker ? (double)educationParameterData.m_WorkerContinueEducationProbability : 1.0)) * math.log((float)(1.6000000238418579 * (double)num + 1.0));
+                return (float)(0.6 * (worker ? (double)educationParameterData.m_WorkerContinueEducationProbability : 1.0)) * math.log((float)(1.6000000238418579 * (double)num + 1.0));
             if (level != 4)
                 return 0.0f;
-            float enteringProbability = (float)(0.30000001192092896 * (worker ? (double)educationParameterData.m_WorkerContinueEducationProbability : 1.0)) * num;
+            float enteringProbability = (float)(0.40000001192092896 * (worker ? (double)educationParameterData.m_WorkerContinueEducationProbability : 1.0)) * num;
             CityUtils.ApplyModifier(ref enteringProbability, cityModifiers, CityModifierType.UniversityInterest);
             return enteringProbability;
         }
@@ -226,10 +226,10 @@ namespace RealLife.Systems
                     {
                         SchoolLevel level = age != CitizenAge.Child || this.m_DebugFastApplySchool ? (SchoolLevel)(citizen.GetEducationLevel() + 1) : SchoolLevel.Elementary;
                         int failedEducationCount = citizen.GetFailedEducationCount();
-                        if (failedEducationCount == 0 && age > CitizenAge.Teen && level == SchoolLevel.College)
-                            level = SchoolLevel.University;
+                        if (failedEducationCount == 0 && age > CitizenAge.Teen && level == SchoolLevel.HighSchool)
+                            level = SchoolLevel.College;
 
-                        bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level >= SchoolLevel.HighSchool && level < SchoolLevel.College || age == CitizenAge.Adult && level >= SchoolLevel.HighSchool;
+                        bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level >= SchoolLevel.HighSchool && level < SchoolLevel.College || age == CitizenAge.Adult && level > SchoolLevel.HighSchool;
                         
                         Entity household = this.m_HouseholdMembers[nativeArray1[index]].m_Household;
 
@@ -237,14 +237,14 @@ namespace RealLife.Systems
                         {
                             float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();      
                             float enteringProbability = RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray3.IsCreated, (int)level, (int)citizen.m_WellBeing, willingness, cityModifier, ref this.m_EducationParameters);
-                            
+
+                            //if (age == CitizenAge.Adult)
+                            //{
+                            //    Mod.log.Info($"age_in_days:{age_in_days}, age:{age}, bd:{citizen.m_BirthDay}, level:{level}, enteringProbability:{enteringProbability}, movingAway:{this.m_MovingAways.HasComponent(household)}, household:{this.m_PropertyRenters.HasComponent(household)}, tourist:{this.m_TouristHouseholds.HasComponent(household)}");
+                            //}
+
                             if (this.m_DebugFastApplySchool || (double)random.NextFloat(1f) < (double)enteringProbability)
-                            {
-                                //if(age == CitizenAge.Teen)
-                                //{
-                                //    Mod.log.Info($"age_in_days:{age_in_days}, age:{age}, bd:{citizen.m_BirthDay}");
-                                //}
-                                //Mod.log.Info($"Apply: age:{age}, age_in_days:{age_in_days}, level:{level}, debug:{this.m_DebugFastApplySchool}");
+                            { 
                                 if (this.m_PropertyRenters.HasComponent(household) && !this.m_TouristHouseholds.HasComponent(household) && !this.m_MovingAways.HasComponent(household))
                                 {
                                     Entity property = this.m_PropertyRenters[household].m_Property;

@@ -54,84 +54,84 @@ namespace RealLife.Systems
                 if (EntityManager.TryGetComponent<Citizen>(ci, out data))
                 {
                     int age = day - data.m_BirthDay;
-                    //Mod.log.Info($"age:{age}, agegroup:{data.GetAge()}, edu:{data.GetEducationLevel()}");
+                    Mod.log.Info($"age:{age}, agegroup:{data.GetAge()}, edu:{data.GetEducationLevel()}");
                     
                     //Temporary solution to negative ages. Assigning new ages based on age group
-                    if (age < 0)
-                    {
-                        
-                        CitizenAge ageGroup = data.GetAge();
-                        switch ((int)ageGroup)
-                        {
-                            case 0: //child
-                                age = random.NextInt(0, Mod.m_Setting.child_age_limit);
-                                break;
-                            case 1: //teen
-                                age = random.NextInt(Mod.m_Setting.child_age_limit + 1, Mod.m_Setting.teen_age_limit);
-                                break;
-                            case 2: //adult
-                                age = random.NextInt(Mod.m_Setting.teen_age_limit + 1, Mod.m_Setting.adult_age_limit);
-                                break;
-                            case 3: //elder
-                                age = random.NextInt(Mod.m_Setting.adult_age_limit + 1, Mod.m_Setting.male_life_expectancy);
-                                break;
-                            default:
-                                age = Mod.m_Setting.male_life_expectancy;
-                                break;
-                        }
-                        //Mod.log.Info($"age:{age}, day:{day}, bd:{(int)data.m_BirthDay}, newbd:{(short)(day - age)}, ageGroup:{ageGroup}");
-
-                        data.m_BirthDay = (short)(day - age);
-
-                        counter++;
-                    }
-                    else
-                    {
-                        if (age <= Mod.m_Setting.child_age_limit)
-                        {   
-                            //if (age >=  Mod.m_Setting.child_school_start_age)
-                            //{
-                            //    children_school_age++;
-                            //}
-                            if (!data.GetAge().Equals(CitizenAge.Child) && !data.GetAge().Equals(CitizenAge.Teen))
-                            {
-                                //Mod.log.Info($"age:{age}, day:{day}, bd:{(int)data.m_BirthDay}, newbd:{(short)(day - age)}, agegroup:{data.GetAge()}");
-                                //Mod.log.Info($"age:{age}, AGE:{data.GetAge()}");
-                                data.SetAge(CitizenAge.Child);
-                                children++;
-                            }
-                        
-                        } else if (age <= Mod.m_Setting.teen_age_limit)
-                        { 
-                            if (!data.GetAge().Equals(CitizenAge.Teen) && !data.GetAge().Equals(CitizenAge.Adult))
-                            {
-                                data.SetAge(CitizenAge.Teen);
-                                teenagers++;
-                            }
-                        } else if (age <= Mod.m_Setting.adult_age_limit)
-                        {
-                            if (!data.GetAge().Equals(CitizenAge.Adult) && !data.GetAge().Equals(CitizenAge.Elderly))
-                            {
-                                data.SetAge(CitizenAge.Adult);
-                                adults++;
-                            }
-                        } else
-                        {
-                            if (!data.GetAge().Equals(CitizenAge.Elderly))
-                            {
-                                data.SetAge(CitizenAge.Elderly);
-                                elders++;
-                            }
-                        }
-                            
-                    }
-
-                    EntityManager.SetComponentData<Citizen>(ci, data);
+                    //if (age < 0)
+                    //{
+                    //    
+                    //    CitizenAge ageGroup = data.GetAge();
+                    //    switch ((int)ageGroup)
+                    //    {
+                    //        case 0: //child
+                    //            age = random.NextInt(0, Mod.m_Setting.child_age_limit);
+                    //            break;
+                    //        case 1: //teen
+                    //            age = random.NextInt(Mod.m_Setting.child_age_limit + 1, Mod.m_Setting.teen_age_limit);
+                    //            break;
+                    //        case 2: //adult
+                    //            age = random.NextInt(Mod.m_Setting.teen_age_limit + 1, Mod.m_Setting.adult_age_limit);
+                    //            break;
+                    //        case 3: //elder
+                    //            age = random.NextInt(Mod.m_Setting.adult_age_limit + 1, Mod.m_Setting.male_life_expectancy);
+                    //            break;
+                    //        default:
+                    //            age = Mod.m_Setting.male_life_expectancy;
+                    //            break;
+                    //    }
+                    //    //Mod.log.Info($"age:{age}, day:{day}, bd:{(int)data.m_BirthDay}, newbd:{(short)(day - age)}, ageGroup:{ageGroup}");
+                    //
+                    //    data.m_BirthDay = (short)(day - age);
+                    //
+                    //    counter++;
+                    //}
+                    //else
+                    //{
+                    //    if (age <= Mod.m_Setting.child_age_limit)
+                    //    {   
+                    //        //if (age >=  Mod.m_Setting.child_school_start_age)
+                    //        //{
+                    //        //    children_school_age++;
+                    //        //}
+                    //        if (!data.GetAge().Equals(CitizenAge.Child) && !data.GetAge().Equals(CitizenAge.Teen))
+                    //        {
+                    //            //Mod.log.Info($"age:{age}, day:{day}, bd:{(int)data.m_BirthDay}, newbd:{(short)(day - age)}, agegroup:{data.GetAge()}");
+                    //            //Mod.log.Info($"age:{age}, AGE:{data.GetAge()}");
+                    //            data.SetAge(CitizenAge.Child);
+                    //            children++;
+                    //        }
+                    //    
+                    //    } else if (age <= Mod.m_Setting.teen_age_limit)
+                    //    { 
+                    //        if (!data.GetAge().Equals(CitizenAge.Teen) && !data.GetAge().Equals(CitizenAge.Adult))
+                    //        {
+                    //            data.SetAge(CitizenAge.Teen);
+                    //            teenagers++;
+                    //        }
+                    //    } else if (age <= Mod.m_Setting.adult_age_limit)
+                    //    {
+                    //        if (!data.GetAge().Equals(CitizenAge.Adult) && !data.GetAge().Equals(CitizenAge.Elderly))
+                    //        {
+                    //            data.SetAge(CitizenAge.Adult);
+                    //            adults++;
+                    //        }
+                    //    } else
+                    //    {
+                    //        if (!data.GetAge().Equals(CitizenAge.Elderly))
+                    //        {
+                    //            data.SetAge(CitizenAge.Elderly);
+                    //            elders++;
+                    //        }
+                    //    }
+                    //        
+                    //}
+                    //
+                    //EntityManager.SetComponentData<Citizen>(ci, data);
 
                 }
             }
-            Mod.log.Info($"Fixed {counter} citizen ages");
-            Mod.log.Info($"Fixed Age Groups: Children: {children}, Teenagers: {teenagers}, Adults: {adults}, Elders: {elders}");
+            //Mod.log.Info($"Fixed {counter} citizen ages");
+            //Mod.log.Info($"Fixed Age Groups: Children: {children}, Teenagers: {teenagers}, Adults: {adults}, Elders: {elders}");
             //Enabled = false;
         }
 
