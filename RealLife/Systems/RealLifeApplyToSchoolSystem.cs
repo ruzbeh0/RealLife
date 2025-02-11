@@ -238,11 +238,6 @@ namespace RealLife.Systems
                             float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();      
                             float enteringProbability = RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray3.IsCreated, (int)level, (int)citizen.m_WellBeing, willingness, cityModifier, ref this.m_EducationParameters);
 
-                            //if (age == CitizenAge.Adult)
-                            //{
-                            //    Mod.log.Info($"age_in_days:{age_in_days}, age:{age}, bd:{citizen.m_BirthDay}, level:{level}, enteringProbability:{enteringProbability}, movingAway:{this.m_MovingAways.HasComponent(household)}, household:{this.m_PropertyRenters.HasComponent(household)}, tourist:{this.m_TouristHouseholds.HasComponent(household)}");
-                            //}
-
                             if (this.m_DebugFastApplySchool || (double)random.NextFloat(1f) < (double)enteringProbability)
                             { 
                                 if (this.m_PropertyRenters.HasComponent(household) && !this.m_TouristHouseholds.HasComponent(household) && !this.m_MovingAways.HasComponent(household))

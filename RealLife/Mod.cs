@@ -62,7 +62,7 @@ namespace RealLife
             updateSystem.UpdateAt<RealLifeFindSchoolSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation); 
             updateSystem.UpdateAt<RealLifeSchoolAISystem>(SystemUpdatePhase.GameSimulation);
-            //updateSystem.UpdateAt<RealLifeHouseholdBehaviorSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAfter<CheckBuildingsSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeCitizenInitializeSystem>(SystemUpdatePhase.Modification5);
             updateSystem.UpdateAfter<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabUpdate);
             updateSystem.UpdateBefore<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabReferences);
