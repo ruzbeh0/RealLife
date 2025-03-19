@@ -16,15 +16,16 @@ using Game.Companies;
 using RealLife.Utils;
 using Game.City;
 using Game.Agents;
+using Unity.Burst.Intrinsics;
 
 #nullable disable
 namespace RealLife.Systems
 {
     public partial class RealLifeCitizenInitializeSystem : GameSystemBase
     {
-        private EntityQuery m_Additions;
-        private EntityQuery m_TimeSettingGroup;
-        private EntityQuery m_CitizenPrefabs;
+        private EntityQuery m_NewCitizenQuery;
+        private EntityQuery m_TimeSettingQuery;
+        private EntityQuery m_CitizenPrefabQuery;
         private EntityQuery m_TimeDataQuery;
         private EntityQuery m_DemandParameterQuery;
         private SimulationSystem m_SimulationSystem;
@@ -40,51 +41,55 @@ namespace RealLife.Systems
             this.m_SimulationSystem = this.World.GetOrCreateSystemManaged<SimulationSystem>();
             this.m_TriggerSystem = this.World.GetOrCreateSystemManaged<TriggerSystem>();
             this.m_EndFrameBarrier = this.World.GetOrCreateSystemManaged<ModificationBarrier5>();
-            this.m_Additions = this.GetEntityQuery(ComponentType.ReadWrite<Citizen>(), ComponentType.ReadWrite<HouseholdMember>(), ComponentType.ReadOnly<Created>(), ComponentType.Exclude<Temp>());
-            this.m_CitizenPrefabs = this.GetEntityQuery(ComponentType.ReadOnly<CitizenData>());
-            this.m_TimeSettingGroup = this.GetEntityQuery(ComponentType.ReadOnly<TimeSettingsData>());
+            this.m_NewCitizenQuery = this.GetEntityQuery(ComponentType.ReadWrite<Citizen>(), ComponentType.ReadWrite<HouseholdMember>(), ComponentType.ReadOnly<Created>(), ComponentType.Exclude<Temp>());
+            this.m_CitizenPrefabQuery = this.GetEntityQuery(ComponentType.ReadOnly<CitizenData>());
+            this.m_TimeSettingQuery = this.GetEntityQuery(ComponentType.ReadOnly<TimeSettingsData>());
             this.m_TimeDataQuery = this.GetEntityQuery(ComponentType.ReadOnly<TimeData>());
             this.m_DemandParameterQuery = this.GetEntityQuery(ComponentType.ReadOnly<DemandParameterData>());
-            this.RequireForUpdate(this.m_Additions);
+            this.RequireForUpdate(this.m_NewCitizenQuery);
             this.RequireForUpdate(this.m_TimeDataQuery);
-            this.RequireForUpdate(this.m_TimeSettingGroup);
+            this.RequireForUpdate(this.m_TimeSettingQuery);
             this.RequireForUpdate(this.m_DemandParameterQuery);
         }
 
         [UnityEngine.Scripting.Preserve]
         protected override void OnUpdate()
         {
-            this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup.Update(ref this.CheckedStateRef);
+            this.__TypeHandle.__Game_Agents_PropertySeeker_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup.Update(ref this.CheckedStateRef);
+            this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup.Update(ref this.CheckedStateRef);
             this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup.Update(ref this.CheckedStateRef);
+            this.__TypeHandle.__Game_Citizens_HouseholdMember_RW_ComponentTypeHandle.Update(ref this.CheckedStateRef);
+            this.__TypeHandle.__Unity_Entities_Entity_TypeHandle.Update(ref this.CheckedStateRef);
             JobHandle outJobHandle;
 
             this.m_CountWorkplacesSystem = this.World.GetOrCreateSystemManaged<CountWorkplacesSystem>();
 
             RealLifeCitizenInitializeSystem.InitializeCitizenJob jobData = new RealLifeCitizenInitializeSystem.InitializeCitizenJob()
             {
-                m_Entities = this.m_Additions.ToEntityArray((AllocatorManager.AllocatorHandle)Allocator.TempJob),
-                m_HouseholdMembers = this.m_Additions.ToComponentDataListAsync<HouseholdMember>((AllocatorManager.AllocatorHandle)this.World.UpdateAllocator.ToAllocator, out outJobHandle),
-                m_CitizenPrefabs = this.m_CitizenPrefabs.ToEntityArray((AllocatorManager.AllocatorHandle)Allocator.TempJob),
+                m_EntityType = this.__TypeHandle.__Unity_Entities_Entity_TypeHandle,
+                m_HouseholdMemberType = this.__TypeHandle.__Game_Citizens_HouseholdMember_RW_ComponentTypeHandle,
+                m_CitizenPrefabs = this.m_CitizenPrefabQuery.ToEntityListAsync((AllocatorManager.AllocatorHandle)this.World.UpdateAllocator.ToAllocator, out outJobHandle),
                 m_Citizens = this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup,
                 m_HouseholdCitizens = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup,
+                m_CitizenDatas = this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup,
                 m_Arriveds = this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup,
                 m_CarKeepers = this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup,
                 m_HasJobSeekers = this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup,
+                m_PropertySeekers = this.__TypeHandle.__Game_Agents_PropertySeeker_RW_ComponentLookup,
                 m_MailSenders = this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup,
                 m_CrimeVictims = this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup,
-                m_CitizenDatas = this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup,
                 m_DemandParameters = this.m_DemandParameterQuery.GetSingleton<DemandParameterData>(),
-                m_TimeSettings = this.m_TimeSettingGroup.GetSingleton<TimeSettingsData>(),
+                m_TimeSettings = this.m_TimeSettingQuery.GetSingleton<TimeSettingsData>(),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
                 m_RandomSeed = RandomSeed.Next(),
-                m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer(),
-                m_TriggerBuffer = this.m_TriggerSystem.CreateActionBuffer(),
+                m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
+                m_TriggerBuffer = this.m_TriggerSystem.CreateActionBuffer().AsParallelWriter(),
                 child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
                 adult_age_limit = Mod.m_Setting.adult_age_limit,
@@ -94,41 +99,8 @@ namespace RealLife.Systems
                 m_FreeWorkplaces = this.m_CountWorkplacesSystem.GetFreeWorkplaces(),
                 day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
-            this.Dependency = jobData.Schedule<RealLifeCitizenInitializeSystem.InitializeCitizenJob>(JobHandle.CombineDependencies(this.Dependency, outJobHandle));
+            this.Dependency = jobData.Schedule<RealLifeCitizenInitializeSystem.InitializeCitizenJob>(this.m_NewCitizenQuery, JobHandle.CombineDependencies(this.Dependency, outJobHandle));
             this.m_EndFrameBarrier.AddJobHandleForProducer(this.Dependency);
-        }
-
-        public static Entity GetPrefab(
-          NativeArray<Entity> citizenPrefabs,
-          Citizen citizen,
-          ComponentLookup<CitizenData> citizenDatas,
-          Random rnd)
-        {
-            int max = 0;
-            for (int index = 0; index < citizenPrefabs.Length; ++index)
-            {
-                CitizenData citizenData = citizenDatas[citizenPrefabs[index]];
-                if ((citizen.m_State & CitizenFlags.Male) == CitizenFlags.None ^ citizenData.m_Male)
-                    ++max;
-            }
-            if (max > 0)
-            {
-                int num = rnd.NextInt(max);
-                for (int index = 0; index < citizenPrefabs.Length; ++index)
-                {
-                    CitizenData citizenData = citizenDatas[citizenPrefabs[index]];
-                    if ((citizen.m_State & CitizenFlags.Male) == CitizenFlags.None ^ citizenData.m_Male)
-                    {
-                        --num;
-                        if (num < 0)
-                            return new PrefabRef()
-                            {
-                                m_Prefab = citizenPrefabs[index]
-                            }.m_Prefab;
-                    }
-                }
-            }
-            return Entity.Null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -149,32 +121,36 @@ namespace RealLife.Systems
         }
 
         [BurstCompile]
-        private struct InitializeCitizenJob : IJob
+        private struct InitializeCitizenJob : IJobChunk
         {
-            [DeallocateOnJobCompletion]
             [ReadOnly]
-            public NativeArray<Entity> m_Entities;
+            public EntityTypeHandle m_EntityType;
             [ReadOnly]
-            public NativeList<HouseholdMember> m_HouseholdMembers;
-            [DeallocateOnJobCompletion]
+            public NativeList<Entity> m_CitizenPrefabs;
             [ReadOnly]
-            public NativeArray<Entity> m_CitizenPrefabs;
-            public BufferLookup<HouseholdCitizen> m_HouseholdCitizens;
-            public ComponentLookup<Citizen> m_Citizens;
+            public ComponentTypeHandle<HouseholdMember> m_HouseholdMemberType;
             public ComponentLookup<Arrived> m_Arriveds;
-            public ComponentLookup<CrimeVictim> m_CrimeVictims;
             public ComponentLookup<CarKeeper> m_CarKeepers;
             public ComponentLookup<HasJobSeeker> m_HasJobSeekers;
+            public ComponentLookup<PropertySeeker> m_PropertySeekers;
             public ComponentLookup<MailSender> m_MailSenders;
             [ReadOnly]
             public ComponentLookup<CitizenData> m_CitizenDatas;
-            public NativeQueue<TriggerAction> m_TriggerBuffer;
+            public BufferLookup<HouseholdCitizen> m_HouseholdCitizens;
+            public ComponentLookup<CrimeVictim> m_CrimeVictims;
+            public ComponentLookup<Citizen> m_Citizens;
+            public NativeQueue<TriggerAction>.ParallelWriter m_TriggerBuffer;
             [ReadOnly]
             public RandomSeed m_RandomSeed;
+            [ReadOnly]
             public uint m_SimulationFrame;
+            [ReadOnly]
+            public TimeData m_TimeData;
+            [ReadOnly]
             public DemandParameterData m_DemandParameters;
+            [ReadOnly]
             public TimeSettingsData m_TimeSettings;
-            public EntityCommandBuffer m_CommandBuffer;
+            public EntityCommandBuffer.ParallelWriter m_CommandBuffer;
             public int child_age_limit;
             public int teen_age_limit;
             public int adult_age_limit;
@@ -185,21 +161,28 @@ namespace RealLife.Systems
             public Workplaces m_FreeWorkplaces;
             public int day;
 
-            public void Execute()
+            public void Execute(
+                in ArchetypeChunk chunk,
+                int unfilteredChunkIndex,
+                bool useEnabledMask,
+                in v128 chunkEnabledMask)
             {
+                NativeArray<Entity> nativeArray1 = chunk.GetNativeArray(this.m_EntityType);
+                NativeArray<HouseholdMember> nativeArray2 = chunk.GetNativeArray<HouseholdMember>(ref this.m_HouseholdMemberType);
+
                 int daysPerYear = this.m_TimeSettings.m_DaysPerYear;
                 Random random = this.m_RandomSeed.GetRandom(0);
 
-                for (int index1 = 0; index1 < this.m_Entities.Length; ++index1)
+                for (int index1 = 0; index1 < nativeArray1.Length; ++index1)
                 {
-                    Entity entity1 = this.m_Entities[index1];
+                    Entity entity1 = nativeArray1[index1];
                     this.m_Arriveds.SetComponentEnabled(entity1, false);
                     this.m_MailSenders.SetComponentEnabled(entity1, false);
                     this.m_CrimeVictims.SetComponentEnabled(entity1, false);
                     this.m_CarKeepers.SetComponentEnabled(entity1, false);
                     this.m_HasJobSeekers.SetComponentEnabled(entity1, false);
                     Citizen citizen1 = this.m_Citizens[entity1];
-                    Entity household = this.m_HouseholdMembers[index1].m_Household;
+                    Entity household = nativeArray2[index1].m_Household;
                     bool flag = (citizen1.m_State & CitizenFlags.Commuter) != 0;
                     int num1 = (citizen1.m_State & CitizenFlags.Tourist) != 0 ? 1 : 0;
                     citizen1.m_PseudoRandom = (ushort)(random.NextUInt() % 65536U);
@@ -208,10 +191,10 @@ namespace RealLife.Systems
                     citizen1.m_LeisureCounter = num1 == 0 ? (byte)(random.NextInt(92) + 128) : (byte)random.NextInt(128);
                     if (random.NextBool())
                         citizen1.m_State |= CitizenFlags.Male;
-                    Entity prefab = RealLifeCitizenInitializeSystem.GetPrefab(this.m_CitizenPrefabs, citizen1, this.m_CitizenDatas, random);
-                    this.m_CommandBuffer.AddComponent<PrefabRef>(entity1, new PrefabRef()
+                    Entity prefabFromCitizen = CitizenUtils.GetCitizenPrefabFromCitizen(this.m_CitizenPrefabs, citizen1, this.m_CitizenDatas, random);
+                    this.m_CommandBuffer.AddComponent<PrefabRef>(unfilteredChunkIndex, entity1, new PrefabRef()
                     {
-                        m_Prefab = prefab
+                        m_Prefab = prefabFromCitizen
                     });
 
                     DynamicBuffer<HouseholdCitizen> householdCitizen = this.m_HouseholdCitizens[household];
@@ -386,31 +369,48 @@ namespace RealLife.Systems
                     this.m_Citizens[entity1] = citizen1;
                 }
             }
+
+            void IJobChunk.Execute(
+                in ArchetypeChunk chunk,
+                int unfilteredChunkIndex,
+                bool useEnabledMask,
+                in v128 chunkEnabledMask)
+            {
+                // ISSUE: reference to a compiler-generated method
+                this.Execute(in chunk, unfilteredChunkIndex, useEnabledMask, in chunkEnabledMask);
+            }
         }
 
         private struct TypeHandle
         {
+            [ReadOnly]
+            public EntityTypeHandle __Unity_Entities_Entity_TypeHandle;
+            public ComponentTypeHandle<HouseholdMember> __Game_Citizens_HouseholdMember_RW_ComponentTypeHandle;
             public ComponentLookup<Citizen> __Game_Citizens_Citizen_RW_ComponentLookup;
             public BufferLookup<HouseholdCitizen> __Game_Citizens_HouseholdCitizen_RW_BufferLookup;
+            [ReadOnly]
+            public ComponentLookup<CitizenData> __Game_Prefabs_CitizenData_RO_ComponentLookup;
             public ComponentLookup<Arrived> __Game_Citizens_Arrived_RW_ComponentLookup;
             public ComponentLookup<CarKeeper> __Game_Citizens_CarKeeper_RW_ComponentLookup;
             public ComponentLookup<HasJobSeeker> __Game_Agents_HasJobSeeker_RW_ComponentLookup;
+            public ComponentLookup<PropertySeeker> __Game_Agents_PropertySeeker_RW_ComponentLookup;
             public ComponentLookup<MailSender> __Game_Citizens_MailSender_RW_ComponentLookup;
             public ComponentLookup<CrimeVictim> __Game_Citizens_CrimeVictim_RW_ComponentLookup;
-            [ReadOnly]
-            public ComponentLookup<CitizenData> __Game_Prefabs_CitizenData_RO_ComponentLookup;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void __AssignHandles(ref SystemState state)
             {
+                this.__Unity_Entities_Entity_TypeHandle = state.GetEntityTypeHandle();
+                this.__Game_Citizens_HouseholdMember_RW_ComponentTypeHandle = state.GetComponentTypeHandle<HouseholdMember>();
                 this.__Game_Citizens_Citizen_RW_ComponentLookup = state.GetComponentLookup<Citizen>();
                 this.__Game_Citizens_HouseholdCitizen_RW_BufferLookup = state.GetBufferLookup<HouseholdCitizen>();
+                this.__Game_Prefabs_CitizenData_RO_ComponentLookup = state.GetComponentLookup<CitizenData>(true);
                 this.__Game_Citizens_Arrived_RW_ComponentLookup = state.GetComponentLookup<Arrived>();
                 this.__Game_Citizens_CarKeeper_RW_ComponentLookup = state.GetComponentLookup<CarKeeper>();
                 this.__Game_Agents_HasJobSeeker_RW_ComponentLookup = state.GetComponentLookup<HasJobSeeker>();
+                this.__Game_Agents_PropertySeeker_RW_ComponentLookup = state.GetComponentLookup<PropertySeeker>();
                 this.__Game_Citizens_MailSender_RW_ComponentLookup = state.GetComponentLookup<MailSender>();
                 this.__Game_Citizens_CrimeVictim_RW_ComponentLookup = state.GetComponentLookup<CrimeVictim>();
-                this.__Game_Prefabs_CitizenData_RO_ComponentLookup = state.GetComponentLookup<CitizenData>(true);
             }
         }
     }
