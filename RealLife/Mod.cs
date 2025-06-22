@@ -51,7 +51,7 @@ namespace RealLife
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.FindSchoolSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.DeathCheckSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.SchoolAISystem>().Enabled = false;
-            //World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.HouseholdBehaviorSystem>().Enabled = false;
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Simulation.BirthSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.Citizens.CitizenInitializeSystem>().Enabled = false;
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<Game.UI.InGame.EducationInfoviewUISystem>().Enabled = false;
 
@@ -62,6 +62,7 @@ namespace RealLife
             updateSystem.UpdateAt<RealLifeFindSchoolSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeDeathCheckSystem>(SystemUpdatePhase.GameSimulation); 
             updateSystem.UpdateAt<RealLifeSchoolAISystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<RealLife.Systems.RealLifeBirthSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAfter<CheckBuildingsSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<RealLifeCitizenInitializeSystem>(SystemUpdatePhase.Modification5);
             updateSystem.UpdateAfter<EducationParameterUpdaterSystem>(SystemUpdatePhase.PrefabUpdate);

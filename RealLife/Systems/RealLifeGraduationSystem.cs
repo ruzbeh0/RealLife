@@ -8,7 +8,7 @@ using Game.Prefabs;
 using Game.Triggers;
 using Game.Simulation;
 using Game;
-using RealLife;
+using Unity.Entities.Internal;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
@@ -173,31 +173,20 @@ namespace RealLife.Systems
         protected override void OnUpdate()
         {
             uint updateFrame = SimulationUtils.GetUpdateFrame(this.m_SimulationSystem.frameIndex, 1, 16);
-            this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Student_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Unity_Entities_Entity_TypeHandle.Update(ref this.CheckedStateRef);
 
             RealLifeGraduationSystem.GraduationJob jobData = new RealLifeGraduationSystem.GraduationJob()
             {
-                m_EntityType = this.__TypeHandle.__Unity_Entities_Entity_TypeHandle,
-                m_UpdateFrameType = this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle,
-                m_CitizenType = this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentTypeHandle,
-                m_StudentType = this.__TypeHandle.__Game_Citizens_Student_RO_ComponentTypeHandle,
-                m_Prefabs = this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup,
-                m_SchoolDatas = this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup,
-                m_InstalledUpgrades = this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup,
-                m_CityModifiers = this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup,
-                m_Purposes = this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup,
-                m_BuildingEfficiencies = this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferLookup,
-                m_Fees = this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup,
+                m_EntityType = InternalCompilerInterface.GetEntityTypeHandle(ref this.__TypeHandle.__Unity_Entities_Entity_TypeHandle, ref this.CheckedStateRef),
+                m_UpdateFrameType = InternalCompilerInterface.GetSharedComponentTypeHandle<UpdateFrame>(ref this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle, ref this.CheckedStateRef),
+                m_CitizenType = InternalCompilerInterface.GetComponentTypeHandle<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_StudentType = InternalCompilerInterface.GetComponentTypeHandle<Game.Citizens.Student>(ref this.__TypeHandle.__Game_Citizens_Student_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_Prefabs = InternalCompilerInterface.GetComponentLookup<PrefabRef>(ref this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_SchoolDatas = InternalCompilerInterface.GetComponentLookup<SchoolData>(ref this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_InstalledUpgrades = InternalCompilerInterface.GetBufferLookup<InstalledUpgrade>(ref this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup, ref this.CheckedStateRef),
+                m_CityModifiers = InternalCompilerInterface.GetBufferLookup<CityModifier>(ref this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup, ref this.CheckedStateRef),
+                m_Purposes = InternalCompilerInterface.GetComponentLookup<TravelPurpose>(ref this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_BuildingEfficiencies = InternalCompilerInterface.GetBufferLookup<Efficiency>(ref this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferLookup, ref this.CheckedStateRef),
+                m_Fees = InternalCompilerInterface.GetBufferLookup<ServiceFee>(ref this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup, ref this.CheckedStateRef),
                 m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
                 m_TriggerBuffer = this.m_TriggerSystem.CreateActionBuffer().AsParallelWriter(),
                 m_EconomyParameters = this.m_EconomyParameterQuery.GetSingleton<EconomyParameterData>(),
@@ -209,7 +198,8 @@ namespace RealLife.Systems
                 m_DebugFastGraduationLevel = this.debugFastGraduationLevel,
                 child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
-                adult_age_limit = Mod.m_Setting.adult_age_limit,
+                men_age_limit = Mod.m_Setting.male_adult_age_limit,
+                women_age_limit = Mod.m_Setting.female_adult_age_limit,
                 years_in_college = Mod.m_Setting.years_in_college,
                 years_in_university = Mod.m_Setting.years_in_university,
                 elementary_grad_probability = Mod.m_Setting.elementary_grad_prob,
@@ -273,7 +263,8 @@ namespace RealLife.Systems
             public int m_DebugFastGraduationLevel;
             public int child_age_limit;
             public int teen_age_limit;
-            public int adult_age_limit;
+            public int men_age_limit;
+            public int women_age_limit;
             public int male_life_expectancy;
             public int female_life_expectancy;
             public int years_in_college;
@@ -388,7 +379,7 @@ namespace RealLife.Systems
                                     {
                                         local.SetFailedEducationCount(failedEducationCount + 1);
                                         float fee = ServiceFeeSystem.GetFee(ServiceFeeSystem.GetEducationResource((int)student.m_Level), this.m_Fees[this.m_City]);
-                                        float num2 = 1f - math.pow(math.saturate(1f - RealLifeGraduationSystem.GetDropoutProbability(local, (int)student.m_Level, student.m_LastCommuteTime, fee, 0, this.m_SimulationFrame, ref this.m_EconomyParameters, schoolData, cityModifier, efficiency, this.m_TimeData, adult_age_limit, elementary_grad_probability, high_grad_probability, college_grad_probability, university_grad_probability)), 32f);
+                                        float num2 = 1f - math.pow(math.saturate(1f - RealLifeGraduationSystem.GetDropoutProbability(local, (int)student.m_Level, student.m_LastCommuteTime, fee, 0, this.m_SimulationFrame, ref this.m_EconomyParameters, schoolData, cityModifier, efficiency, this.m_TimeData, men_age_limit, elementary_grad_probability, high_grad_probability, college_grad_probability, university_grad_probability)), 32f);
                                         if ((double)random.NextFloat() < (double)num2)
                                         {
                                             this.LeaveSchool(unfilteredChunkIndex, entity, school);

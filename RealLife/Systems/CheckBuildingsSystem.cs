@@ -91,7 +91,9 @@ namespace RealLife.Systems
                 m_RentEventArchetype = m_RentEventArchetype,
                 random = random,
                 m_CitizenBufs = SystemAPI.GetBufferLookup<HouseholdCitizen>(true),
-                m_HealthProblems = SystemAPI.GetComponentLookup<HealthProblem>(true)
+                m_HealthProblems = SystemAPI.GetComponentLookup<HealthProblem>(true),
+                averageHouseholdSize = Mod.m_Setting.average_household_size,
+                disableHouseholdDeletion = Mod.m_Setting.disable_household_deletion
 
             };
             this.Dependency = job.ScheduleParallel(m_BuildingsQuery, this.Dependency);

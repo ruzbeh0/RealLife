@@ -15,7 +15,6 @@ using Game.Tools;
 using Game.Triggers;
 using Game.Simulation;
 using Game;
-using RealLife;
 using RealLife.Utils;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
@@ -23,10 +22,7 @@ using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-using System;
-using Unity.Core;
+using Unity.Entities.Internal;
 
 #nullable disable
 namespace RealLife.Systems
@@ -77,44 +73,28 @@ namespace RealLife.Systems
             if (this.EntityManager.HasEnabledComponent<Locked>(this.m_HealthcareSettingsQuery.GetSingleton<HealthcareParameterData>().m_HealthcareServicePrefab))
                 return;
             uint updateFrame = SimulationUtils.GetUpdateFrame(this.m_SimulationSystem.frameIndex, RealLifeDeathCheckSystem.kUpdatesPerDay, 16);
-            this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Student_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Creatures_Resident_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_CurrentTransport_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Building_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Hospital_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_CurrentBuilding_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Student_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Companies_ResourceBuyer_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Leisure_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_HealthProblem_RW_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Worker_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Unity_Entities_Entity_TypeHandle.Update(ref this.CheckedStateRef);
+
             JobHandle deps;
 
             RealLifeDeathCheckSystem.DeathCheckJob jobData = new RealLifeDeathCheckSystem.DeathCheckJob()
             {
-                m_EntityType = this.__TypeHandle.__Unity_Entities_Entity_TypeHandle,
-                m_CitizenType = this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentTypeHandle,
-                m_WorkerType = this.__TypeHandle.__Game_Citizens_Worker_RO_ComponentTypeHandle,
-                m_HouseholdMemberType = this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentTypeHandle,
-                m_HealthProblemType = this.__TypeHandle.__Game_Citizens_HealthProblem_RW_ComponentTypeHandle,
-                m_UpdateFrameType = this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle,
-                m_LeisureType = this.__TypeHandle.__Game_Citizens_Leisure_RO_ComponentTypeHandle,
-                m_ResourceBuyerType = this.__TypeHandle.__Game_Companies_ResourceBuyer_RO_ComponentTypeHandle,
-                m_StudentType = this.__TypeHandle.__Game_Citizens_Student_RO_ComponentTypeHandle,
-                m_CurrentBuildings = this.__TypeHandle.__Game_Citizens_CurrentBuilding_RO_ComponentLookup,
-                m_HospitalData = this.__TypeHandle.__Game_Buildings_Hospital_RO_ComponentLookup,
-                m_BuildingData = this.__TypeHandle.__Game_Buildings_Building_RO_ComponentLookup,
-                m_CurrentTransport = this.__TypeHandle.__Game_Citizens_CurrentTransport_RO_ComponentLookup,
-                m_ResidentData = this.__TypeHandle.__Game_Creatures_Resident_RO_ComponentLookup,
-                m_CityModifiers = this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup,
-                m_Students = this.__TypeHandle.__Game_Buildings_Student_RO_BufferLookup,
-                m_HouseholdCitizens = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup,
+                m_EntityType = InternalCompilerInterface.GetEntityTypeHandle(ref this.__TypeHandle.__Unity_Entities_Entity_TypeHandle, ref this.CheckedStateRef),
+                m_CitizenType = InternalCompilerInterface.GetComponentTypeHandle<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_WorkerType = InternalCompilerInterface.GetComponentTypeHandle<Worker>(ref this.__TypeHandle.__Game_Citizens_Worker_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_HouseholdMemberType = InternalCompilerInterface.GetComponentTypeHandle<HouseholdMember>(ref this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_HealthProblemType = InternalCompilerInterface.GetComponentTypeHandle<HealthProblem>(ref this.__TypeHandle.__Game_Citizens_HealthProblem_RW_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_UpdateFrameType = InternalCompilerInterface.GetSharedComponentTypeHandle<UpdateFrame>(ref this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle, ref this.CheckedStateRef),
+                m_LeisureType = InternalCompilerInterface.GetComponentTypeHandle<Leisure>(ref this.__TypeHandle.__Game_Citizens_Leisure_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_ResourceBuyerType = InternalCompilerInterface.GetComponentTypeHandle<ResourceBuyer>(ref this.__TypeHandle.__Game_Companies_ResourceBuyer_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_StudentType = InternalCompilerInterface.GetComponentTypeHandle<Game.Citizens.Student>(ref this.__TypeHandle.__Game_Citizens_Student_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_CurrentBuildings = InternalCompilerInterface.GetComponentLookup<CurrentBuilding>(ref this.__TypeHandle.__Game_Citizens_CurrentBuilding_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_HospitalData = InternalCompilerInterface.GetComponentLookup<Game.Buildings.Hospital>(ref this.__TypeHandle.__Game_Buildings_Hospital_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_BuildingData = InternalCompilerInterface.GetComponentLookup<Building>(ref this.__TypeHandle.__Game_Buildings_Building_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_CurrentTransport = InternalCompilerInterface.GetComponentLookup<CurrentTransport>(ref this.__TypeHandle.__Game_Citizens_CurrentTransport_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_ResidentData = InternalCompilerInterface.GetComponentLookup<Game.Creatures.Resident>(ref this.__TypeHandle.__Game_Creatures_Resident_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_CityModifiers = InternalCompilerInterface.GetBufferLookup<CityModifier>(ref this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup, ref this.CheckedStateRef),
+                m_Students = InternalCompilerInterface.GetBufferLookup<Game.Buildings.Student>(ref this.__TypeHandle.__Game_Buildings_Student_RO_BufferLookup, ref this.CheckedStateRef),
+                m_HouseholdCitizens = InternalCompilerInterface.GetBufferLookup<HouseholdCitizen>(ref this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup, ref this.CheckedStateRef),
                 m_UpdateFrameIndex = updateFrame,
                 m_RandomSeed = RandomSeed.Next(),
                 m_HealthcareParameterData = this.m_HealthcareSettingsQuery.GetSingleton<HealthcareParameterData>(),
@@ -165,6 +145,7 @@ namespace RealLife.Systems
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void __AssignQueries(ref SystemState state)
         {
+            new EntityQueryBuilder((AllocatorManager.AllocatorHandle)Allocator.Temp).Dispose();
         }
 
         protected override void OnCreateForCompiler()

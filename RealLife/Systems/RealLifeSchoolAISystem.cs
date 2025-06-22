@@ -14,6 +14,7 @@ using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Entities.Internal;
 
 #nullable disable
 namespace RealLife.Systems
@@ -52,35 +53,22 @@ namespace RealLife.Systems
         [UnityEngine.Scripting.Preserve]
         protected override void OnUpdate()
         {
-            this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Student_RW_BufferTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_ServiceUsage_RW_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_School_RW_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
 
             RealLifeSchoolAISystem.SchoolTickJob jobData = new RealLifeSchoolAISystem.SchoolTickJob()
             {
-                m_PrefabRefType = this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentTypeHandle,
-                m_InstalledUpgradeType = this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferTypeHandle,
-                m_EfficiencyType = this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferTypeHandle,
-                m_SchoolType = this.__TypeHandle.__Game_Buildings_School_RW_ComponentTypeHandle,
-                m_ServiceUsageType = this.__TypeHandle.__Game_Buildings_ServiceUsage_RW_ComponentTypeHandle,
-                m_StudentType = this.__TypeHandle.__Game_Buildings_Student_RW_BufferTypeHandle,
-                m_Prefabs = this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup,
-                m_SchoolDatas = this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup,
-                m_Students = this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup,
-                m_Citizens = this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentLookup,
-                m_TravelPurposes = this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup,
-                m_CityModifiers = this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup,
-                m_Fees = this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup,
+                m_PrefabRefType = InternalCompilerInterface.GetComponentTypeHandle<PrefabRef>(ref this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_InstalledUpgradeType = InternalCompilerInterface.GetBufferTypeHandle<InstalledUpgrade>(ref this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferTypeHandle, ref this.CheckedStateRef),
+                m_EfficiencyType = InternalCompilerInterface.GetBufferTypeHandle<Efficiency>(ref this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferTypeHandle, ref this.CheckedStateRef),
+                m_SchoolType = InternalCompilerInterface.GetComponentTypeHandle<Game.Buildings.School>(ref this.__TypeHandle.__Game_Buildings_School_RW_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_ServiceUsageType = InternalCompilerInterface.GetComponentTypeHandle<ServiceUsage>(ref this.__TypeHandle.__Game_Buildings_ServiceUsage_RW_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_StudentType = InternalCompilerInterface.GetBufferTypeHandle<Game.Buildings.Student>(ref this.__TypeHandle.__Game_Buildings_Student_RW_BufferTypeHandle, ref this.CheckedStateRef),
+                m_Prefabs = InternalCompilerInterface.GetComponentLookup<PrefabRef>(ref this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_SchoolDatas = InternalCompilerInterface.GetComponentLookup<SchoolData>(ref this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Students = InternalCompilerInterface.GetComponentLookup<Game.Citizens.Student>(ref this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Citizens = InternalCompilerInterface.GetComponentLookup<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_TravelPurposes = InternalCompilerInterface.GetComponentLookup<TravelPurpose>(ref this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_CityModifiers = InternalCompilerInterface.GetBufferLookup<CityModifier>(ref this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup, ref this.CheckedStateRef),
+                m_Fees = InternalCompilerInterface.GetBufferLookup<ServiceFee>(ref this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup, ref this.CheckedStateRef),
                 m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
                 m_EconomyParameters = this.__query_1235104412_0.GetSingleton<EconomyParameterData>(),
                 m_EducationParameters = this.__query_1235104412_1.GetSingleton<EducationParameterData>(),
@@ -92,7 +80,7 @@ namespace RealLife.Systems
                 high_grad_probability = Mod.m_Setting.high_grad_prob,
                 college_grad_probability = Mod.m_Setting.college_grad_prob,
                 university_grad_probability = Mod.m_Setting.university_grad_prob,
-                adult_age_limit = Mod.m_Setting.adult_age_limit,
+                adult_age_limit = Mod.m_Setting.male_adult_age_limit,
                 day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<Game.Common.TimeData>())
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeSchoolAISystem.SchoolTickJob>(this.m_SchoolQuery, this.Dependency);
@@ -102,42 +90,23 @@ namespace RealLife.Systems
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void __AssignQueries(ref SystemState state)
         {
-            this.__query_1235104412_0 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<EconomyParameterData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-            this.__query_1235104412_1 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<EducationParameterData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
-            this.__query_1235104412_2 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<TimeData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
+            EntityQueryBuilder entityQueryBuilder1 = new EntityQueryBuilder((AllocatorManager.AllocatorHandle)Allocator.Temp);
+            EntityQueryBuilder entityQueryBuilder2 = entityQueryBuilder1.WithAll<EconomyParameterData>();
+            entityQueryBuilder2 = entityQueryBuilder2.WithOptions(EntityQueryOptions.IncludeSystems);
+            // ISSUE: reference to a compiler-generated field
+            this.__query_1235104412_0 = entityQueryBuilder2.Build(ref state);
+            entityQueryBuilder1.Reset();
+            EntityQueryBuilder entityQueryBuilder3 = entityQueryBuilder1.WithAll<EducationParameterData>();
+            entityQueryBuilder3 = entityQueryBuilder3.WithOptions(EntityQueryOptions.IncludeSystems);
+            // ISSUE: reference to a compiler-generated field
+            this.__query_1235104412_1 = entityQueryBuilder3.Build(ref state);
+            entityQueryBuilder1.Reset();
+            EntityQueryBuilder entityQueryBuilder4 = entityQueryBuilder1.WithAll<TimeData>();
+            entityQueryBuilder4 = entityQueryBuilder4.WithOptions(EntityQueryOptions.IncludeSystems);
+            // ISSUE: reference to a compiler-generated field
+            this.__query_1235104412_2 = entityQueryBuilder4.Build(ref state);
+            entityQueryBuilder1.Reset();
+            entityQueryBuilder1.Dispose();
         }
 
         protected override void OnCreateForCompiler()

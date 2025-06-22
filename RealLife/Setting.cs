@@ -11,7 +11,7 @@ using static Game.Simulation.TerrainSystem;
 namespace RealLife
 {
     [FileLocation(nameof(RealLife))]
-    [SettingsUIGroupOrder(AgeGroup, EducationGroup, CitizenGroup)]
+    [SettingsUIGroupOrder(AgeGroup, EducationGroup, CitizenGroup, HouseholdGroup)]
     [SettingsUIShowGroupName(AgeGroup, GraduationGroup, EducationGroup)]
     public class Setting : ModSetting
     {
@@ -19,9 +19,11 @@ namespace RealLife
         public const string AgeGroup = "AgeGroup";
         public const string EducationSection = "Education";
         public const string CitizenSection = "CitizenSection";
+        public const string HouseholdSection = "HouseholdSection";
         public const string EducationGroup = "EducationGroup";
         public const string GraduationGroup = "GraduationGroup";
         public const string CitizenGroup = "CitizenGroup";
+        public const string HouseholdGroup = "HouseholdGroup";
 
         public Setting(IMod mod) : base(mod)
         {
@@ -32,7 +34,8 @@ namespace RealLife
         {
             child_age_limit = 14;
             teen_age_limit = 18;
-            adult_age_limit = 65;
+            male_adult_age_limit = 65;
+            female_adult_age_limit = 65;
             child_school_start_age = 6;
             female_life_expectancy = 83;
             male_life_expectancy = 78;
@@ -52,6 +55,8 @@ namespace RealLife
             look_for_partner_rate_adjuster = 0;
             college_edu_in_univ = 0;
             corpse_vanish = 0;
+            average_household_size = 2.77f;
+            disable_household_deletion = false;
         }
 
         [SettingsUISlider(min = 0, max = 10, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
@@ -68,7 +73,11 @@ namespace RealLife
 
         [SettingsUISlider(min = 50, max = 90, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
         [SettingsUISection(AgeSection, AgeGroup)]
-        public int adult_age_limit { get; set; }
+        public int male_adult_age_limit { get; set; }
+
+        [SettingsUISlider(min = 50, max = 90, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
+        [SettingsUISection(AgeSection, AgeGroup)]
+        public int female_adult_age_limit { get; set; }
 
         [SettingsUISlider(min = 60, max = 90, step = 1, scalarMultiplier = 1, unit = Unit.kInteger)]
         [SettingsUISection(AgeSection, AgeGroup)]
@@ -142,6 +151,13 @@ namespace RealLife
         [SettingsUISection(CitizenSection, CitizenGroup)]
         public int look_for_partner_rate_adjuster { get; set; }
 
+        [SettingsUISlider(min = 1f, max = 10f, step = 1, scalarMultiplier = 1, unit = Unit.kFloatTwoFractions)]
+        [SettingsUISection(HouseholdSection, HouseholdGroup)]
+        public float average_household_size { get; set; }
+
+        [SettingsUISection(HouseholdSection, HouseholdGroup)]
+        public bool disable_household_deletion { get; set; }
+
     }  
 
     public class LocaleEN : IDictionarySource
@@ -159,11 +175,13 @@ namespace RealLife
                 { m_Setting.GetOptionTabLocaleID(Setting.AgeSection), "Age" },
                 { m_Setting.GetOptionTabLocaleID(Setting.EducationSection), "Education" },
                 { m_Setting.GetOptionTabLocaleID(Setting.CitizenSection), "Birth & Relationships" },
+                { m_Setting.GetOptionTabLocaleID(Setting.HouseholdSection), "Household" },
 
                 { m_Setting.GetOptionGroupLocaleID(Setting.AgeGroup), "Age Settings" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.EducationGroup), "Education" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GraduationGroup), "Graduation" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.CitizenGroup), "Birth & Relationships" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.HouseholdGroup), "Household" },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.child_school_start_age)), "Child School Start Age" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.child_school_start_age)), $"Age the children start going to Elementary School. Vanilla value is Zero." },
@@ -171,8 +189,10 @@ namespace RealLife
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.child_age_limit)), $"Age that children become teens. Vanilla value is 21." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.teen_age_limit)), "Teen Age Limit" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.teen_age_limit)), $"Age that teens become adults. Vanilla value is 36." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.adult_age_limit)), "Adult Retirement Age" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.adult_age_limit)), $"Age that adults become elderly and retire. Vanilla value is 75." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.male_adult_age_limit)), "Men Retirement Age" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.male_adult_age_limit)), $"Age that men become elderly and retire. Vanilla value is 75." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.female_adult_age_limit)), "Women Retirement Age" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.female_adult_age_limit)), $"Age that women become elderly and retire. Vanilla value is 75." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.female_life_expectancy)), "Female Life Expectancy" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.female_life_expectancy)), $"Average age that female citizens can die." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.male_life_expectancy)), "Male Life Expectancy" },
@@ -209,8 +229,10 @@ namespace RealLife
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.divorce_rate_adjuster)), $"Increase or decrease the divorce rate" },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.look_for_partner_rate_adjuster)), "Look for Partner Rate Factor" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.look_for_partner_rate_adjuster)), $"Increase or decrease the look for partner rate" },
-
-
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.average_household_size)), "Average Household Size" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.average_household_size)), $"This mod will try to keep the average household size in this value by both controlling birth rates and deleting large househlds (if enabled)." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.disable_household_deletion)), "Disable deletion of large households" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.disable_household_deletion)), $"Disable deletion of large households that are above the average household size." },
             };
         }
 

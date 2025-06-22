@@ -14,7 +14,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Game.Companies;
 using RealLife.Utils;
-using Game.City;
+using Unity.Entities.Internal;
 using Game.Agents;
 using Unity.Burst.Intrinsics;
 
@@ -55,35 +55,24 @@ namespace RealLife.Systems
         [UnityEngine.Scripting.Preserve]
         protected override void OnUpdate()
         {
-            this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Agents_PropertySeeker_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_HouseholdMember_RW_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Unity_Entities_Entity_TypeHandle.Update(ref this.CheckedStateRef);
             JobHandle outJobHandle;
 
             this.m_CountWorkplacesSystem = this.World.GetOrCreateSystemManaged<CountWorkplacesSystem>();
 
             RealLifeCitizenInitializeSystem.InitializeCitizenJob jobData = new RealLifeCitizenInitializeSystem.InitializeCitizenJob()
             {
-                m_EntityType = this.__TypeHandle.__Unity_Entities_Entity_TypeHandle,
-                m_HouseholdMemberType = this.__TypeHandle.__Game_Citizens_HouseholdMember_RW_ComponentTypeHandle,
+                m_EntityType = InternalCompilerInterface.GetEntityTypeHandle(ref this.__TypeHandle.__Unity_Entities_Entity_TypeHandle, ref this.CheckedStateRef),
+                m_HouseholdMemberType = InternalCompilerInterface.GetComponentTypeHandle<HouseholdMember>(ref this.__TypeHandle.__Game_Citizens_HouseholdMember_RW_ComponentTypeHandle, ref this.CheckedStateRef),
                 m_CitizenPrefabs = this.m_CitizenPrefabQuery.ToEntityListAsync((AllocatorManager.AllocatorHandle)this.World.UpdateAllocator.ToAllocator, out outJobHandle),
-                m_Citizens = this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup,
-                m_HouseholdCitizens = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup,
-                m_CitizenDatas = this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup,
-                m_Arriveds = this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup,
-                m_CarKeepers = this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup,
-                m_HasJobSeekers = this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup,
-                m_PropertySeekers = this.__TypeHandle.__Game_Agents_PropertySeeker_RW_ComponentLookup,
-                m_MailSenders = this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup,
-                m_CrimeVictims = this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup,
+                m_Citizens = InternalCompilerInterface.GetComponentLookup<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_HouseholdCitizens = InternalCompilerInterface.GetBufferLookup<HouseholdCitizen>(ref this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RW_BufferLookup, ref this.CheckedStateRef),
+                m_CitizenDatas = InternalCompilerInterface.GetComponentLookup<CitizenData>(ref this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Arriveds = InternalCompilerInterface.GetComponentLookup<Arrived>(ref this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_CarKeepers = InternalCompilerInterface.GetComponentLookup<CarKeeper>(ref this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_HasJobSeekers = InternalCompilerInterface.GetComponentLookup<HasJobSeeker>(ref this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_PropertySeekers = InternalCompilerInterface.GetComponentLookup<PropertySeeker>(ref this.__TypeHandle.__Game_Agents_PropertySeeker_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_MailSenders = InternalCompilerInterface.GetComponentLookup<MailSender>(ref this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_CrimeVictims = InternalCompilerInterface.GetComponentLookup<CrimeVictim>(ref this.__TypeHandle.__Game_Citizens_CrimeVictim_RW_ComponentLookup, ref this.CheckedStateRef),
                 m_DemandParameters = this.m_DemandParameterQuery.GetSingleton<DemandParameterData>(),
                 m_TimeSettings = this.m_TimeSettingQuery.GetSingleton<TimeSettingsData>(),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
@@ -92,7 +81,8 @@ namespace RealLife.Systems
                 m_TriggerBuffer = this.m_TriggerSystem.CreateActionBuffer().AsParallelWriter(),
                 child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
-                adult_age_limit = Mod.m_Setting.adult_age_limit,
+                men_age_limit = Mod.m_Setting.male_adult_age_limit,
+                women_age_limit = Mod.m_Setting.female_adult_age_limit,
                 female_life_expectancy = Mod.m_Setting.female_life_expectancy,
                 male_life_expectancy = Mod.m_Setting.male_life_expectancy,
                 elementary_grad_prob = Mod.m_Setting.elementary_grad_prob,
@@ -106,6 +96,7 @@ namespace RealLife.Systems
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void __AssignQueries(ref SystemState state)
         {
+            new EntityQueryBuilder((AllocatorManager.AllocatorHandle)Allocator.Temp).Dispose();
         }
 
         protected override void OnCreateForCompiler()
@@ -153,7 +144,8 @@ namespace RealLife.Systems
             public EntityCommandBuffer.ParallelWriter m_CommandBuffer;
             public int child_age_limit;
             public int teen_age_limit;
-            public int adult_age_limit;
+            public int men_age_limit;
+            public int women_age_limit;
             public int female_life_expectancy;
             public int male_life_expectancy;
             public int elementary_grad_prob;
@@ -236,7 +228,11 @@ namespace RealLife.Systems
                     else if (citizen1.m_BirthDay == (short)1)
                     {
                         // Adult age must be between teen age limit and adult retirement age
-                        int adultAgeLimitInDays = adult_age_limit;
+                        int adultAgeLimitInDays = women_age_limit;
+                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
+                        {
+                            adultAgeLimitInDays = men_age_limit;
+                        }
                         int teentAgeLimitInDays = teen_age_limit;
 
                         // Adult age will have a higher probability for being younger
@@ -319,7 +315,11 @@ namespace RealLife.Systems
                     else if (citizen1.m_BirthDay == (short)3)
                     {
                         //Elder age must be between adult retirement and life expectancy
-                        int adultAgeLimitInDays = adult_age_limit;
+                        int adultAgeLimitInDays = women_age_limit;
+                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
+                        {
+                            adultAgeLimitInDays = men_age_limit;
+                        }
                         int life_expectancy = female_life_expectancy;
                         if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
                         {
@@ -332,7 +332,11 @@ namespace RealLife.Systems
                     else
                     {
                         // Adult age must be between teen age limit and adult retirement age
-                        int adultAgeLimitInDays = adult_age_limit;
+                        int adultAgeLimitInDays = women_age_limit;
+                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
+                        {
+                            adultAgeLimitInDays = men_age_limit;
+                        }
                         int teenAgeLimitInDays = teen_age_limit;
                         
                         num2 = teenAgeLimitInDays + random.NextInt(adultAgeLimitInDays - teenAgeLimitInDays);

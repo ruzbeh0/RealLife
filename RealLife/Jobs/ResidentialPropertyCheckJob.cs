@@ -19,6 +19,7 @@ using Game.Agents;
 using Game.Rendering;
 using Game.Citizens;
 using RealLife.Components;
+using System.Runtime.InteropServices;
 
 namespace RealLife.Jobs
 {
@@ -47,6 +48,8 @@ namespace RealLife.Jobs
         public Unity.Mathematics.Random random;
         public BufferLookup<HouseholdCitizen> m_CitizenBufs;
         public ComponentLookup<HealthProblem> m_HealthProblems;
+        public float averageHouseholdSize;
+        public bool disableHouseholdDeletion;
 
         public ResidentialPropertyCheckJob()
         {
@@ -62,6 +65,8 @@ namespace RealLife.Jobs
             //Mod.log.Info($"Processing {entities.Length} buildings");
             bool processedOnce = false;
             //Remove dead citizens
+            float totalHouseholdSize = 0f;
+            float totalHouseholds = 0f;
             for (int i = 0; i < entities.Length; i++)
             {
                 var entity = entities[i];
@@ -78,6 +83,8 @@ namespace RealLife.Jobs
                     if (this.m_CitizenBufs.HasBuffer(renter))
                     {
                         DynamicBuffer<HouseholdCitizen> citizenBuf = m_CitizenBufs[renter];
+                        totalHouseholds++;
+                        totalHouseholdSize += citizenBuf.Length;
                         bool flag = false;
                         for (int index2 = 0; index2 < citizenBuf.Length; ++index2)
                         {
@@ -96,6 +103,20 @@ namespace RealLife.Jobs
                     }  
                 }
             }
+
+            
+
+            int deletedHouseholds = 0;
+
+            float currentAverageHouseholdSize = totalHouseholdSize / totalHouseholds;
+            float n = currentAverageHouseholdSize - averageHouseholdSize;
+
+            if (n > 0f && totalHouseholds > 1)
+            {
+                deletedHouseholds = Math.Max(1, (int)(totalHouseholds*n/ currentAverageHouseholdSize));
+
+                //Mod.log.Info($"Processed {totalHouseholds} households with an average size of {currentAverageHouseholdSize} citizens. Deleting:{deletedHouseholds}");
+            }     
 
             //Remove empty households
             if (!processedOnce)
@@ -116,7 +137,18 @@ namespace RealLife.Jobs
                         if (this.m_CitizenBufs.HasBuffer(renter))
                         {
                             DynamicBuffer<HouseholdCitizen> citizenBuf = m_CitizenBufs[renter];
-                            if (citizenBuf.Length == 0 || citizenBuf.Length > 5)
+                            bool delete = false;
+                            if (citizenBuf.Length == 0)
+                            {
+                                delete = true;
+                            }
+                            else if(!disableHouseholdDeletion && citizenBuf.Length > currentAverageHouseholdSize && deletedHouseholds > 0)
+                            {
+                                delete = true;
+                                deletedHouseholds--;
+                            }
+
+                            if (delete)
                             {
                                 RemoveHousehold(entity, renters[j], ResetType.Delete, unfilteredChunkIndex);
                             }

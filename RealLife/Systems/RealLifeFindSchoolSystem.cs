@@ -6,8 +6,6 @@ using Game.City;
 using Game.Common;
 using Game.Companies;
 using Game.Economy;
-using Game.Net;
-using Game.Net;
 using Game.Pathfind;
 using Game.Prefabs;
 using Game.Triggers;
@@ -19,6 +17,7 @@ using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.Internal;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -62,28 +61,18 @@ namespace RealLife.Systems
         {
             if (!this.m_SchoolSeekerQuery.IsEmptyIgnoreFilter)
             {
-                this.__TypeHandle.__Game_Vehicles_OwnedVehicle_RO_BufferLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Citizens_Household_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Areas_CurrentDistrict_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Buildings_PropertyRenter_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Common_Owner_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Game_Citizens_SchoolSeeker_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-                this.__TypeHandle.__Unity_Entities_Entity_TypeHandle.Update(ref this.CheckedStateRef);
                 RealLifeFindSchoolSystem.FindSchoolJob jobData = new RealLifeFindSchoolSystem.FindSchoolJob()
                 {
-                    m_EntityType = this.__TypeHandle.__Unity_Entities_Entity_TypeHandle,
-                    m_SchoolSeekerType = this.__TypeHandle.__Game_Citizens_SchoolSeeker_RO_ComponentTypeHandle,
-                    m_OwnerType = this.__TypeHandle.__Game_Common_Owner_RO_ComponentTypeHandle,
-                    m_HouseholdMembers = this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentLookup,
-                    m_PropertyRenters = this.__TypeHandle.__Game_Buildings_PropertyRenter_RO_ComponentLookup,
-                    m_CurrentDistrictData = this.__TypeHandle.__Game_Areas_CurrentDistrict_RO_ComponentLookup,
-                    m_Citizens = this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentLookup,
-                    m_Households = this.__TypeHandle.__Game_Citizens_Household_RO_ComponentLookup,
-                    m_HouseholdCitizens = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup,
-                    m_OwnedVehicles = this.__TypeHandle.__Game_Vehicles_OwnedVehicle_RO_BufferLookup,
+                    m_EntityType = InternalCompilerInterface.GetEntityTypeHandle(ref this.__TypeHandle.__Unity_Entities_Entity_TypeHandle, ref this.CheckedStateRef),
+                    m_SchoolSeekerType = InternalCompilerInterface.GetComponentTypeHandle<SchoolSeeker>(ref this.__TypeHandle.__Game_Citizens_SchoolSeeker_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                    m_OwnerType = InternalCompilerInterface.GetComponentTypeHandle<Owner>(ref this.__TypeHandle.__Game_Common_Owner_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                    m_HouseholdMembers = InternalCompilerInterface.GetComponentLookup<HouseholdMember>(ref this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentLookup, ref this.CheckedStateRef),
+                    m_PropertyRenters = InternalCompilerInterface.GetComponentLookup<PropertyRenter>(ref this.__TypeHandle.__Game_Buildings_PropertyRenter_RO_ComponentLookup, ref this.CheckedStateRef),
+                    m_CurrentDistrictData = InternalCompilerInterface.GetComponentLookup<CurrentDistrict>(ref this.__TypeHandle.__Game_Areas_CurrentDistrict_RO_ComponentLookup, ref this.CheckedStateRef),
+                    m_Citizens = InternalCompilerInterface.GetComponentLookup<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RO_ComponentLookup, ref this.CheckedStateRef),
+                    m_Households = InternalCompilerInterface.GetComponentLookup<Household>(ref this.__TypeHandle.__Game_Citizens_Household_RO_ComponentLookup, ref this.CheckedStateRef),
+                    m_HouseholdCitizens = InternalCompilerInterface.GetBufferLookup<HouseholdCitizen>(ref this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferLookup, ref this.CheckedStateRef),
+                    m_OwnedVehicles = InternalCompilerInterface.GetBufferLookup<OwnedVehicle>(ref this.__TypeHandle.__Game_Vehicles_OwnedVehicle_RO_BufferLookup, ref this.CheckedStateRef),
                     m_PathfindQueue = this.m_PathfindSetupSystem.GetQueue((object)this, 64).AsParallelWriter(),
                     m_CommandBuffer = this.m_EndFrameBarrier.CreateCommandBuffer().AsParallelWriter(),
                     college_in_univ_prob = Mod.m_Setting.college_edu_in_univ
@@ -94,47 +83,30 @@ namespace RealLife.Systems
             }
             if (this.m_ResultsQuery.IsEmptyIgnoreFilter)
                 return;
-            this.__TypeHandle.__Game_Companies_Employee_RW_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Worker_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Common_Deleted_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Economy_Resources_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Household_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Buildings_Student_RW_BufferLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Pathfind_PathInformation_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Common_Owner_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_SchoolSeeker_RO_ComponentTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Unity_Entities_Entity_TypeHandle.Update(ref this.CheckedStateRef);
+
             JobHandle outJobHandle;
 
             RealLifeFindSchoolSystem.StartStudyingJob jobData1 = new RealLifeFindSchoolSystem.StartStudyingJob()
             {
                 m_Chunks = this.m_ResultsQuery.ToArchetypeChunkListAsync((AllocatorManager.AllocatorHandle)this.World.UpdateAllocator.ToAllocator, out outJobHandle),
-                m_EntityType = this.__TypeHandle.__Unity_Entities_Entity_TypeHandle,
-                m_SchoolSeekerType = this.__TypeHandle.__Game_Citizens_SchoolSeeker_RO_ComponentTypeHandle,
-                m_OwnerType = this.__TypeHandle.__Game_Common_Owner_RO_ComponentTypeHandle,
-                m_PathInfoType = this.__TypeHandle.__Game_Pathfind_PathInformation_RO_ComponentTypeHandle,
-                m_Citizens = this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup,
-                m_Prefabs = this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup,
-                m_SchoolData = this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup,
-                m_StudentBuffers = this.__TypeHandle.__Game_Buildings_Student_RW_BufferLookup,
-                m_InstalledUpgrades = this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup,
-                m_Fees = this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup,
-                m_CityModifiers = this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup,
-                m_HouseholdDatas = this.__TypeHandle.__Game_Citizens_Household_RO_ComponentLookup,
-                m_Efficiencies = this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferLookup,
-                m_Resources = this.__TypeHandle.__Game_Economy_Resources_RO_BufferLookup,
-                m_HouseholdMembers = this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentLookup,
-                m_Deleteds = this.__TypeHandle.__Game_Common_Deleted_RO_ComponentLookup,
-                m_Workers = this.__TypeHandle.__Game_Citizens_Worker_RO_ComponentLookup,
-                m_Employees = this.__TypeHandle.__Game_Companies_Employee_RW_BufferLookup,
+                m_EntityType = InternalCompilerInterface.GetEntityTypeHandle(ref this.__TypeHandle.__Unity_Entities_Entity_TypeHandle, ref this.CheckedStateRef),
+                m_SchoolSeekerType = InternalCompilerInterface.GetComponentTypeHandle<SchoolSeeker>(ref this.__TypeHandle.__Game_Citizens_SchoolSeeker_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_OwnerType = InternalCompilerInterface.GetComponentTypeHandle<Owner>(ref this.__TypeHandle.__Game_Common_Owner_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_PathInfoType = InternalCompilerInterface.GetComponentTypeHandle<PathInformation>(ref this.__TypeHandle.__Game_Pathfind_PathInformation_RO_ComponentTypeHandle, ref this.CheckedStateRef),
+                m_Citizens = InternalCompilerInterface.GetComponentLookup<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_Prefabs = InternalCompilerInterface.GetComponentLookup<PrefabRef>(ref this.__TypeHandle.__Game_Prefabs_PrefabRef_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_SchoolData = InternalCompilerInterface.GetComponentLookup<SchoolData>(ref this.__TypeHandle.__Game_Prefabs_SchoolData_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_StudentBuffers = InternalCompilerInterface.GetBufferLookup<Game.Buildings.Student>(ref this.__TypeHandle.__Game_Buildings_Student_RW_BufferLookup, ref this.CheckedStateRef),
+                m_InstalledUpgrades = InternalCompilerInterface.GetBufferLookup<InstalledUpgrade>(ref this.__TypeHandle.__Game_Buildings_InstalledUpgrade_RO_BufferLookup, ref this.CheckedStateRef),
+                m_Fees = InternalCompilerInterface.GetBufferLookup<ServiceFee>(ref this.__TypeHandle.__Game_City_ServiceFee_RO_BufferLookup, ref this.CheckedStateRef),
+                m_CityModifiers = InternalCompilerInterface.GetBufferLookup<CityModifier>(ref this.__TypeHandle.__Game_City_CityModifier_RO_BufferLookup, ref this.CheckedStateRef),
+                m_HouseholdDatas = InternalCompilerInterface.GetComponentLookup<Household>(ref this.__TypeHandle.__Game_Citizens_Household_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Efficiencies = InternalCompilerInterface.GetBufferLookup<Efficiency>(ref this.__TypeHandle.__Game_Buildings_Efficiency_RO_BufferLookup, ref this.CheckedStateRef),
+                m_Resources = InternalCompilerInterface.GetBufferLookup<Resources>(ref this.__TypeHandle.__Game_Economy_Resources_RO_BufferLookup, ref this.CheckedStateRef),
+                m_HouseholdMembers = InternalCompilerInterface.GetComponentLookup<HouseholdMember>(ref this.__TypeHandle.__Game_Citizens_HouseholdMember_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Deleteds = InternalCompilerInterface.GetComponentLookup<Deleted>(ref this.__TypeHandle.__Game_Common_Deleted_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Workers = InternalCompilerInterface.GetComponentLookup<Worker>(ref this.__TypeHandle.__Game_Citizens_Worker_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Employees = InternalCompilerInterface.GetBufferLookup<Employee>(ref this.__TypeHandle.__Game_Companies_Employee_RW_BufferLookup, ref this.CheckedStateRef),
                 m_City = this.m_CitySystem.City,
                 m_EconomyParameters = this.__query_17488131_0.GetSingleton<EconomyParameterData>(),
                 m_RandomSeed = RandomSeed.Next(),
@@ -151,31 +123,18 @@ namespace RealLife.Systems
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void __AssignQueries(ref SystemState state)
         {
-            this.__query_17488131_0 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<EconomyParameterData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
+            EntityQueryBuilder entityQueryBuilder1 = new EntityQueryBuilder((AllocatorManager.AllocatorHandle)Allocator.Temp);
+            EntityQueryBuilder entityQueryBuilder2 = entityQueryBuilder1.WithAll<EconomyParameterData>();
+            entityQueryBuilder2 = entityQueryBuilder2.WithOptions(EntityQueryOptions.IncludeSystems);
             // ISSUE: reference to a compiler-generated field
-            this.__query_17488131_1 = state.GetEntityQuery(new EntityQueryDesc()
-            {
-                All = new ComponentType[1]
-              {
-          ComponentType.ReadOnly<TimeData>()
-              },
-                Any = new ComponentType[0],
-                None = new ComponentType[0],
-                Disabled = new ComponentType[0],
-                Absent = new ComponentType[0],
-                Options = EntityQueryOptions.IncludeSystems
-            });
+            this.__query_17488131_0 = entityQueryBuilder2.Build(ref state);
+            entityQueryBuilder1.Reset();
+            EntityQueryBuilder entityQueryBuilder3 = entityQueryBuilder1.WithAll<TimeData>();
+            entityQueryBuilder3 = entityQueryBuilder3.WithOptions(EntityQueryOptions.IncludeSystems);
+            // ISSUE: reference to a compiler-generated field
+            this.__query_17488131_1 = entityQueryBuilder3.Build(ref state);
+            entityQueryBuilder1.Reset();
+            entityQueryBuilder1.Dispose();
         }
 
         protected override void OnCreateForCompiler()

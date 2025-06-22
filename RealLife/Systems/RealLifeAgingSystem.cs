@@ -17,7 +17,7 @@ using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
+using Unity.Entities.Internal;
 
 #nullable disable
 namespace RealLife.Systems
@@ -90,21 +90,17 @@ namespace RealLife.Systems
         protected override void OnUpdate()
         {
             uint updateFrame = SimulationUtils.GetUpdateFrame(this.m_SimulationSystem.frameIndex, AgingSystem.kUpdatesPerDay, 16);
-            this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferTypeHandle.Update(ref this.CheckedStateRef);
-            this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle.Update(ref this.CheckedStateRef);
+
             RealLifeAgingSystem.AgingJob jobData = new RealLifeAgingSystem.AgingJob()
             {
                 m_BecomeTeenCounter = this.m_BecomeTeenCounter.ToConcurrent(),
                 m_BecomeAdultCounter = this.m_BecomeAdultCounter.ToConcurrent(),
                 m_BecomeElderCounter = this.m_BecomeElderCounter.ToConcurrent(),
-                m_UpdateFrameType = this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle,
-                m_HouseholdCitizenType = this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferTypeHandle,
-                m_TravelPurposes = this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup,
-                m_Students = this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup,
-                m_Citizens = this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup,
+                m_UpdateFrameType = InternalCompilerInterface.GetSharedComponentTypeHandle<UpdateFrame>(ref this.__TypeHandle.__Game_Simulation_UpdateFrame_SharedComponentTypeHandle, ref this.CheckedStateRef),
+                m_HouseholdCitizenType = InternalCompilerInterface.GetBufferTypeHandle<HouseholdCitizen>(ref this.__TypeHandle.__Game_Citizens_HouseholdCitizen_RO_BufferTypeHandle, ref this.CheckedStateRef),
+                m_TravelPurposes = InternalCompilerInterface.GetComponentLookup<TravelPurpose>(ref this.__TypeHandle.__Game_Citizens_TravelPurpose_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Students = InternalCompilerInterface.GetComponentLookup<Game.Citizens.Student>(ref this.__TypeHandle.__Game_Citizens_Student_RO_ComponentLookup, ref this.CheckedStateRef),
+                m_Citizens = InternalCompilerInterface.GetComponentLookup<Citizen>(ref this.__TypeHandle.__Game_Citizens_Citizen_RW_ComponentLookup, ref this.CheckedStateRef),
                 m_SimulationFrame = this.m_SimulationSystem.frameIndex,
                 m_TimeData = this.m_TimeDataQuery.GetSingleton<TimeData>(),
                 m_UpdateFrameIndex = updateFrame,
@@ -112,7 +108,8 @@ namespace RealLife.Systems
                 m_DebugAgeAllCitizens = AgingSystem.s_DebugAgeAllCitizens,
                 child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
-                adult_age_limit = Mod.m_Setting.adult_age_limit,
+                men_age_limit = Mod.m_Setting.male_adult_age_limit,
+                women_age_limit = Mod.m_Setting.male_adult_age_limit,
                 day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeAgingSystem.AgingJob>(this.m_HouseholdQuery, this.Dependency);
@@ -123,6 +120,7 @@ namespace RealLife.Systems
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void __AssignQueries(ref SystemState state)
         {
+            new EntityQueryBuilder((AllocatorManager.AllocatorHandle)Allocator.Temp).Dispose();
         }
 
         protected override void OnCreateForCompiler()
@@ -164,7 +162,8 @@ namespace RealLife.Systems
             public bool m_DebugAgeAllCitizens;
             public int child_age_limit;
             public int teen_age_limit;
-            public int adult_age_limit;
+            public int men_age_limit;
+            public int women_age_limit;
             public int day;
 
             private void LeaveSchool(
@@ -208,7 +207,11 @@ namespace RealLife.Systems
                                 num2 = teen_age_limit;
                                 break;
                             case CitizenAge.Adult:
-                                num2 = adult_age_limit;
+                                num2 = women_age_limit;
+                                if ((citizen2.m_State & CitizenFlags.Male) != CitizenFlags.None)
+                                {
+                                    num2 = men_age_limit;
+                                }
                                 break;
                             default:
                                 continue;
