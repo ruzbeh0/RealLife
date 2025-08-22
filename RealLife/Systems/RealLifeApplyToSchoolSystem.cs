@@ -116,7 +116,7 @@ namespace RealLife.Systems
           ref EducationParameterData educationParameterData)
         {
             if (level == 1)
-                return age != CitizenAge.Child ? 0.0f : 1f;
+                return age == CitizenAge.Child || age == CitizenAge.Teen ? 1f : 0f;
             if (age == CitizenAge.Child || age == CitizenAge.Elderly)
                 return 0.0f;
             if (level == 2)
@@ -214,7 +214,7 @@ namespace RealLife.Systems
                         if (failedEducationCount == 0 && age > CitizenAge.Teen && level == SchoolLevel.HighSchool)
                             level = SchoolLevel.College;
 
-                        bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level >= SchoolLevel.HighSchool && level < SchoolLevel.College || age == CitizenAge.Adult && level > SchoolLevel.HighSchool;
+                        bool flag = age == CitizenAge.Child && age_in_days >= child_school_start_age || age == CitizenAge.Teen && level < SchoolLevel.College || age == CitizenAge.Adult && level > SchoolLevel.HighSchool;
                         
                         Entity household = this.m_HouseholdMembers[nativeArray1[index]].m_Household;
 
@@ -223,6 +223,7 @@ namespace RealLife.Systems
                             float willingness = citizen.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();      
                             float enteringProbability = RealLifeApplyToSchoolSystem.GetEnteringProbability(age, nativeArray3.IsCreated, (int)level, (int)citizen.m_WellBeing, willingness, cityModifier, ref this.m_EducationParameters);
 
+                            //Mod.log.Info($"Citizen {nativeArray1[index]} applying to school: Age={age}, Level={level}, Willingness={willingness}, Entering Probability={enteringProbability}");
                             if (this.m_DebugFastApplySchool || (double)random.NextFloat(1f) < (double)enteringProbability)
                             { 
                                 if (this.m_PropertyRenters.HasComponent(household) && !this.m_TouristHouseholds.HasComponent(household) && !this.m_MovingAways.HasComponent(household))

@@ -142,7 +142,7 @@ namespace RealLife.Jobs
                             {
                                 delete = true;
                             }
-                            else if(!disableHouseholdDeletion && citizenBuf.Length > currentAverageHouseholdSize && deletedHouseholds > 0)
+                            else if(!disableHouseholdDeletion && citizenBuf.Length > currentAverageHouseholdSize*1.3f && deletedHouseholds > 0)
                             {
                                 delete = true;
                                 deletedHouseholds--;

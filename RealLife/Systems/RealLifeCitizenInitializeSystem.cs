@@ -225,76 +225,17 @@ namespace RealLife.Systems
                             }
                         }
                     }
-                    else if (citizen1.m_BirthDay == (short)1)
-                    {
-                        // Adult age must be between teen age limit and adult retirement age
-                        int adultAgeLimitInDays = women_age_limit;
-                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
-                        {
-                            adultAgeLimitInDays = men_age_limit;
-                        }
-                        int teentAgeLimitInDays = teen_age_limit;
-
-                        // Adult age will have a higher probability for being younger
-                        double ageVariation = GaussianRandom.NextGaussianDouble(random)/2.5f;
-
-                        int median_point = (adultAgeLimitInDays - teentAgeLimitInDays) / 4;
-
-                        int age_offset;
-
-                        if(ageVariation > 0)
-                        {
-                            age_offset = (int)((adultAgeLimitInDays - median_point - teentAgeLimitInDays) * ageVariation);
-                        } else
-                        {
-                            age_offset = (int)((median_point) * ageVariation);
-                        }
-
-                        num2 = teentAgeLimitInDays + median_point + age_offset;
-                        if(num2 > adultAgeLimitInDays)
-                        {
-                            num2 = adultAgeLimitInDays;
-                        }
-                        //Mod.log.Info($"Adult Immigrant age: {num2}, ageVar:{ageVariation}, ageOff:{age_offset}, medpoint:{median_point}");
-                        citizen1.SetAge(CitizenAge.Adult);
-                        
-                        // Education will be based on what is required on free workplaces
-                        int totalWorkPlaces = m_FreeWorkplaces[0] + m_FreeWorkplaces[1] + m_FreeWorkplaces[2] + m_FreeWorkplaces[3] + m_FreeWorkplaces[4];
-
-                        int eduLevel = 0;
-                        if (totalWorkPlaces == 0) 
-                        {
-                            eduLevel = (random.NextInt(5) + 1) / 2;
-                        }
-                        else 
-                        {
-                        
-                            //Same logic as pop rebalance mod by Infixo
-                            int roll = random.NextInt(totalWorkPlaces);
-                            for (int c = 4; c >= 0; c--)
-                            {
-                                totalWorkPlaces -= m_FreeWorkplaces[c];
-                                if (roll >= totalWorkPlaces)
-                                {
-                                    eduLevel = c;
-                                    break;
-                                }
-                            }
-                        }
-                        int2.x = eduLevel;
-                        int2.y = eduLevel;
-                    }
                     else if (citizen1.m_BirthDay == (short)2)
                     {
                         int childAgeLimit = child_age_limit;
                         int teenAgeLimit = teen_age_limit;
-                        
+
                         double num3 = (double)citizen1.GetPseudoRandom(CitizenPseudoRandom.StudyWillingness).NextFloat();
                         if ((double)random.NextFloat(1f) > (double)this.m_DemandParameters.m_TeenSpawnPercentage)
                         {
                             citizen1.SetAge(CitizenAge.Child);
                             citizen1.SetEducationLevel(0);
-                        
+
                             // Child age must be between zero and child age limit
                             num2 = random.NextInt(childAgeLimit);
                         }
@@ -302,32 +243,15 @@ namespace RealLife.Systems
                         {
                             citizen1.SetAge(CitizenAge.Teen);
                             int eduLevel = 0;
-                            if(random.NextInt(100) < elementary_grad_prob)
+                            if (random.NextInt(100) < elementary_grad_prob)
                             {
                                 eduLevel = 1;
                             }
                             int2 = new int2(eduLevel, eduLevel);
-                        
+
                             // Teen age must be between child age limit and teen age limit
                             num2 = childAgeLimit + random.NextInt(teenAgeLimit - childAgeLimit);
                         }
-                    }
-                    else if (citizen1.m_BirthDay == (short)3)
-                    {
-                        //Elder age must be between adult retirement and life expectancy
-                        int adultAgeLimitInDays = women_age_limit;
-                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
-                        {
-                            adultAgeLimitInDays = men_age_limit;
-                        }
-                        int life_expectancy = female_life_expectancy;
-                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
-                        {
-                            life_expectancy = male_life_expectancy;
-                        }
-                        num2 = adultAgeLimitInDays + random.NextInt(life_expectancy - adultAgeLimitInDays);
-                        citizen1.SetAge(CitizenAge.Elderly);
-                        int2 = new int2(0, 4);
                     }
                     else
                     {
@@ -337,37 +261,85 @@ namespace RealLife.Systems
                         {
                             adultAgeLimitInDays = men_age_limit;
                         }
-                        int teenAgeLimitInDays = teen_age_limit;
-                        
-                        num2 = teenAgeLimitInDays + random.NextInt(adultAgeLimitInDays - teenAgeLimitInDays);
-                        citizen1.SetAge(CitizenAge.Adult);
-                        int2 = new int2(2, 3);
-                    }
-                    
-                    float max = 0.0f;
-                    float num4 = 1f;
-                    for (int index3 = 0; index3 <= 3; ++index3)
-                    {
-                        if (index3 >= int2.x && index3 <= int2.y)
+                        //Elder age must be between adult retirement and life expectancy
+                        int life_expectancy = female_life_expectancy;
+                        if ((citizen1.m_State & CitizenFlags.Male) != CitizenFlags.None)
                         {
-                            max += this.m_DemandParameters.m_NewCitizenEducationParameters[index3];
+                            life_expectancy = male_life_expectancy;
                         }
-                        num4 -= this.m_DemandParameters.m_NewCitizenEducationParameters[index3];
-                    }
-                    if (int2.y == 4)
-                        max += num4;
-                    float num5 = random.NextFloat(max);
-                    for (int x = int2.x; x <= int2.y; ++x)
-                    {
-                        if (x == 4 || (double)num5 < (double)this.m_DemandParameters.m_NewCitizenEducationParameters[x])
+                        int teentAgeLimitInDays = teen_age_limit;
+
+                        if (citizen1.m_BirthDay == (short)3 && random.NextInt(100) < 40)
                         {
-                            citizen1.SetEducationLevel(x);
-                            break;
+                            num2 = adultAgeLimitInDays + random.NextInt(life_expectancy - adultAgeLimitInDays);
+                            citizen1.SetAge(CitizenAge.Elderly);
+                            int2 = new int2(0, 4);
+                        } else
+                        {
+                            // Adult age will have a higher probability for being younger
+                            double ageVariation = GaussianRandom.NextGaussianDouble(random) / 2.5f;
+
+                            int median_point = (adultAgeLimitInDays - teentAgeLimitInDays) / 4;
+
+                            if(citizen1.m_BirthDay == (short)3)
+                            {
+                                // Older adutls will have a higher probability for being older
+                                median_point = (adultAgeLimitInDays - teentAgeLimitInDays) / 2;
+                            }
+
+                            int age_offset;
+
+                            if (ageVariation > 0)
+                            {
+                                age_offset = (int)((adultAgeLimitInDays - median_point - teentAgeLimitInDays) * ageVariation);
+                            }
+                            else
+                            {
+                                age_offset = (int)((median_point) * ageVariation);
+                            }
+
+                            num2 = teentAgeLimitInDays + median_point + age_offset;
+                            if (num2 > adultAgeLimitInDays)
+                            {
+                                num2 = adultAgeLimitInDays;
+                            }
+                            //Mod.log.Info($"Adult Immigrant age: {num2}, ageVar:{ageVariation}, ageOff:{age_offset}, medpoint:{median_point}");
+                            citizen1.SetAge(CitizenAge.Adult);
+
+                            // Education will be based on what is required on free workplaces
+                            int totalWorkPlaces = m_FreeWorkplaces[0] + m_FreeWorkplaces[1] + m_FreeWorkplaces[2] + m_FreeWorkplaces[3] + m_FreeWorkplaces[4];
+                            //Mod.log.Info($"Total free workplaces: {totalWorkPlaces},  m_FreeWorkplaces[0]:{m_FreeWorkplaces[0]}, m_FreeWorkplaces1]:{m_FreeWorkplaces[1]}, m_FreeWorkplaces[2]:{m_FreeWorkplaces[2]}, m_FreeWorkplaces[3]:{m_FreeWorkplaces[3]},m_FreeWorkplaces[4]:{m_FreeWorkplaces[4]}");
+
+                            int eduLevel = 0;
+                            if (totalWorkPlaces == 0)
+                            {
+                                eduLevel = (random.NextInt(5) + 1) / 2;
+                            }
+                            else
+                            {
+
+                                //Same logic as pop rebalance mod by Infixo
+                                int roll = random.NextInt(totalWorkPlaces);
+                                for (int c = 4; c >= 0; c--)
+                                {
+                                    totalWorkPlaces -= m_FreeWorkplaces[c];
+                                    if (roll >= totalWorkPlaces)
+                                    {
+                                        eduLevel = c;
+                                        break;
+                                    }
+                                }
+                            }
+                            int2.x = eduLevel;
+                            int2.y = eduLevel;
                         }
-                        num5 -= this.m_DemandParameters.m_NewCitizenEducationParameters[x];
+
+                            
                     }
 
-                    //Mod.log.Info($"Age:{num2}, Birthday:{citizen1.m_BirthDay}, new bd:{(short)(day - num2)}, day:{day}, AGE GROUP:{citizen1.GetAge()}");
+                    citizen1.SetEducationLevel(random.NextInt(int2.x, int2.y));
+
+                    //Mod.log.Info($"Citizen {entity1} initialized with age: {citizen1.GetAge()}, education: {citizen1.GetEducationLevel()}, birth day: {citizen1.m_BirthDay}, state: {citizen1.m_State}");
                     citizen1.m_BirthDay = (short)(day - num2);
                     
                     this.m_Citizens[entity1] = citizen1;

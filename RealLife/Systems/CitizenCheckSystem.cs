@@ -41,21 +41,39 @@ namespace RealLife.Systems
             int day = TimeSystem.GetDay(this.m_SimulationFrame, m_TimeData);
             Unity.Mathematics.Random random = new Unity.Mathematics.Random(this.m_SimulationFrame);
             int counter = 0;
-            Mod.log.Info($"Processing {cits.Length} citizens on day:{day}");
+            
             int children = 0;
             int children_school_age = 0;
             int teenagers = 0;
             int adults = 0;
             int elders = 0;
+            int total = 0;
             foreach (var ci in cits)
             {
                 Citizen data;
 
                 if (EntityManager.TryGetComponent<Citizen>(ci, out data))
                 {
+
+                    // citizen data
+                    bool isCommuter = ((data.m_State & CitizenFlags.Commuter) != CitizenFlags.None);
+                    bool isTourist = ((data.m_State & CitizenFlags.Tourist) != CitizenFlags.None);
+                    //bool isMovedIn = ((m_Households[household].m_Flags & HouseholdFlags.MovedIn) != HouseholdFlags.None);
+
+                    if (isTourist || isCommuter)
+                        continue;
+
+
+
                     int age = day - data.m_BirthDay;
                     Mod.log.Info($"age:{age}, agegroup:{data.GetAge()}, edu:{data.GetEducationLevel()}");
-                    
+
+                    if(data.GetAge().Equals(CitizenAge.Teen) && data.GetEducationLevel().Equals(0)) {
+                        data.SetEducationLevel(1);
+
+                        EntityManager.SetComponentData<Citizen>(ci, data);
+                    }
+                    total++;
                     //Temporary solution to negative ages. Assigning new ages based on age group
                     //if (age < 0)
                     //{
@@ -132,7 +150,8 @@ namespace RealLife.Systems
             }
             //Mod.log.Info($"Fixed {counter} citizen ages");
             //Mod.log.Info($"Fixed Age Groups: Children: {children}, Teenagers: {teenagers}, Adults: {adults}, Elders: {elders}");
-            //Enabled = false;
+            Mod.log.Info($"Processing {total} citizens on day:{day}");
+            Enabled = false;
         }
 
         public override int GetUpdateInterval(SystemUpdatePhase phase)

@@ -29,7 +29,7 @@ namespace RealLife.Systems
 {
     public partial class RealLifeDeathCheckSystem : GameSystemBase
     {
-        public static readonly int kUpdatesPerDay = 4;
+        public static readonly int kUpdatesPerDay = 1;
         private SimulationSystem m_SimulationSystem;
         private IconCommandSystem m_IconCommandSystem;
         private CitySystem m_CitySystem;
@@ -321,15 +321,15 @@ namespace RealLife.Systems
                         double extraYears = GaussianRandom.NextGaussianDouble(random);
                         if(extraYears < 0)
                         {
-                            extraYears *= 5;
+                            extraYears *= 10;
                         } else
                         {
-                            extraYears *= 15;
+                            extraYears *= 20;
                         }
                         lifeExpectancy +=  (int)extraYears;
 
-                        //Checking death with a probability of 1/kUpdatesPerDay*2
-                        int check = random.NextInt(kUpdatesPerDay*2);
+                        //Checking death with a probability of 1/kUpdatesPerDay*16
+                        int check = random.NextInt(kUpdatesPerDay*16);
                         if(check < 1)
                         {
                             if (age > lifeExpectancy)

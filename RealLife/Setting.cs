@@ -151,7 +151,7 @@ namespace RealLife
         [SettingsUISection(CitizenSection, CitizenGroup)]
         public int look_for_partner_rate_adjuster { get; set; }
 
-        [SettingsUISlider(min = 1f, max = 10f, step = 1, scalarMultiplier = 1, unit = Unit.kFloatTwoFractions)]
+        [SettingsUISlider(min = 1f, max = 10f, step = 0.01f, scalarMultiplier = 1, unit = Unit.kFloatTwoFractions)]
         [SettingsUISection(HouseholdSection, HouseholdGroup)]
         public float average_household_size { get; set; }
 
@@ -230,9 +230,9 @@ namespace RealLife
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.look_for_partner_rate_adjuster)), "Look for Partner Rate Factor" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.look_for_partner_rate_adjuster)), $"Increase or decrease the look for partner rate" },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.average_household_size)), "Average Household Size" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.average_household_size)), $"This mod will try to keep the average household size in this value by both controlling birth rates and deleting large househlds (if enabled)." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.average_household_size)), $"This mod will try to keep the average household size in this value by both controlling birth rates and deleting large households (if enabled)." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.disable_household_deletion)), "Disable deletion of large households" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.disable_household_deletion)), $"Disable deletion of large households that are above the average household size." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.disable_household_deletion)), $"Disable deletion of large households that are above the average household size. Deletion will only happen if a group of households is above the average. If a household is bigger than the average but it is in a group that is in the average, it will not be deleted." },
             };
         }
 
