@@ -109,7 +109,7 @@ namespace RealLife.Systems
                 child_age_limit = Mod.m_Setting.child_age_limit,
                 teen_age_limit = Mod.m_Setting.teen_age_limit,
                 men_age_limit = Mod.m_Setting.male_adult_age_limit,
-                women_age_limit = Mod.m_Setting.male_adult_age_limit,
+                women_age_limit = Mod.m_Setting.female_adult_age_limit,
                 day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>())
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeAgingSystem.AgingJob>(this.m_HouseholdQuery, this.Dependency);

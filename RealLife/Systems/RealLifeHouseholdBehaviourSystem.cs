@@ -163,7 +163,8 @@ namespace RealLife.Systems
                 m_UpdateFrameIndex = frameWithInterval,
                 m_City = this.m_CitySystem.City,
                 day = TimeSystem.GetDay(this.m_SimulationSystem.frameIndex, this.m_TimeDataQuery.GetSingleton<TimeData>()),
-                teen_age_limit = Mod.m_Setting.teen_age_limit
+                teen_age_limit = Mod.m_Setting.teen_age_limit,
+                grace_period = Mod.m_Setting.years_in_college + Mod.m_Setting.years_in_university + 1
             };
             this.Dependency = jobData.ScheduleParallel<RealLifeHouseholdBehaviorSystem.HouseholdTickJob>(this.m_HouseholdGroup, this.Dependency);
             this.m_EndFrameBarrier.AddJobHandleForProducer(this.Dependency);
@@ -339,6 +340,7 @@ namespace RealLife.Systems
             public Entity m_City;
             public int day;
             public int teen_age_limit;
+            public int grace_period;
 
             private bool NeedsCar(int spendableMoney, int familySize, int cars, ref Unity.Mathematics.Random random)
             {
@@ -377,17 +379,30 @@ namespace RealLife.Systems
                         bool flag1 = true;
                         int num1 = 0;
                         int age_in_days = 0;
+                        bool recent_teen = false;
                         for (int index2 = 0; index2 < citizens.Length; ++index2)
                         {
                             age_in_days = day - (int)this.m_CitizenDatas[citizens[index2].m_Citizen].m_BirthDay;
                             num1 += this.m_CitizenDatas[citizens[index2].m_Citizen].Happiness;
                             if (this.m_CitizenDatas[citizens[index2].m_Citizen].GetAge() >= CitizenAge.Adult)
                                 flag1 = false;
+                            if (this.m_CitizenDatas[citizens[index2].m_Citizen].GetAge() == CitizenAge.Teen && age_in_days == teen_age_limit)
+                                recent_teen = true;
+                            if (age_in_days >= teen_age_limit && (age_in_days < teen_age_limit + grace_period))
+                            {
+                                num1 += 25;
+                            }
                         }
+                        //If there aren't any adults but there is a teen who just became adult, don't move out
+                        if (flag1)
+                        {
+                            flag1 = !recent_teen;
+                        }
+                       
                         int num2 = num1 / citizens.Length;
                         bool flag2 = (double)random.NextInt(10000) < -3.0 * (double)math.log((float)(-(100 - num2) + 70)) + 9.0;
                         //Mod.log.Info($"num1:{num1},citizens.Length:{citizens.Length}.num2:{num2}");
-                        if (flag1 | flag2)
+                        if (flag1 || flag2)
                         {
                             //Mod.log.Info($"num1:{num1},citizens.Length:{citizens.Length}.num2:{num2},flag1:{flag1},flag2:{flag2},age_in_days:{age_in_days}");
                             this.m_CommandBuffer.AddComponent<MovingAway>(unfilteredChunkIndex, entity, new MovingAway());
