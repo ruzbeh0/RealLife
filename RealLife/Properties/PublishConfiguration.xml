@@ -58,14 +58,11 @@ This section has a few options to adjust the game birth and relationship paramet
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/real-life-mod.1698231/" />
 	<!--Version of the mod-->
-	<ModVersion Value="1.0.1" />
+	<ModVersion Value="1.0.3" />
 	<!--Recommended version of the base game to use the mod-->
-	<GameVersion Value="1.3.*" />
+	<GameVersion Value="1.4.*" />
 	<ChangeLog>
-* Fixed bug with women's retirement age not being applied correctly.
-* Fixed bug causing teens to move out when they become adults.
-* Fixed race condition bug between graduation and aging system that was causing some cims to not graduate correctly.
-* Updated moving out conditions for new adults
+* Updated for game version 1.4.2
 	</ChangeLog>
 	<!--External link. supported types are discord, github, youtube, twitch, x, paypal, patreon-->
 	<ExternalLink Type="github" Url="https://github.com/ruzbeh0/RealLife" />

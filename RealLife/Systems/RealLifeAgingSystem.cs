@@ -229,6 +229,7 @@ namespace RealLife.Systems
                                     this.m_BecomeTeenCounter.Increment();
                                     citizen2.SetAge(CitizenAge.Teen);
                                     this.m_Citizens[citizen1] = citizen2;
+                                    this.m_CommandBuffer.SetComponentEnabled<BicycleOwner>(unfilteredChunkIndex, citizen1, true);
                                     continue;
                                 case CitizenAge.Teen:
                                     if (this.m_Students.HasComponent(citizen1))

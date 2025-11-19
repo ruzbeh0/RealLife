@@ -69,6 +69,7 @@ namespace RealLife.Systems
                 m_CitizenDatas = InternalCompilerInterface.GetComponentLookup<CitizenData>(ref this.__TypeHandle.__Game_Prefabs_CitizenData_RO_ComponentLookup, ref this.CheckedStateRef),
                 m_Arriveds = InternalCompilerInterface.GetComponentLookup<Arrived>(ref this.__TypeHandle.__Game_Citizens_Arrived_RW_ComponentLookup, ref this.CheckedStateRef),
                 m_CarKeepers = InternalCompilerInterface.GetComponentLookup<CarKeeper>(ref this.__TypeHandle.__Game_Citizens_CarKeeper_RW_ComponentLookup, ref this.CheckedStateRef),
+                m_BicycleOwners = InternalCompilerInterface.GetComponentLookup<BicycleOwner>(ref this.__TypeHandle.__Game_Citizens_BicycleOwner_RW_ComponentLookup, ref this.CheckedStateRef),
                 m_HasJobSeekers = InternalCompilerInterface.GetComponentLookup<HasJobSeeker>(ref this.__TypeHandle.__Game_Agents_HasJobSeeker_RW_ComponentLookup, ref this.CheckedStateRef),
                 m_PropertySeekers = InternalCompilerInterface.GetComponentLookup<PropertySeeker>(ref this.__TypeHandle.__Game_Agents_PropertySeeker_RW_ComponentLookup, ref this.CheckedStateRef),
                 m_MailSenders = InternalCompilerInterface.GetComponentLookup<MailSender>(ref this.__TypeHandle.__Game_Citizens_MailSender_RW_ComponentLookup, ref this.CheckedStateRef),
@@ -122,6 +123,7 @@ namespace RealLife.Systems
             public ComponentTypeHandle<HouseholdMember> m_HouseholdMemberType;
             public ComponentLookup<Arrived> m_Arriveds;
             public ComponentLookup<CarKeeper> m_CarKeepers;
+            public ComponentLookup<BicycleOwner> m_BicycleOwners;
             public ComponentLookup<HasJobSeeker> m_HasJobSeekers;
             public ComponentLookup<PropertySeeker> m_PropertySeekers;
             public ComponentLookup<MailSender> m_MailSenders;
@@ -175,12 +177,12 @@ namespace RealLife.Systems
                     this.m_HasJobSeekers.SetComponentEnabled(entity1, false);
                     Citizen citizen1 = this.m_Citizens[entity1];
                     Entity household = nativeArray2[index1].m_Household;
-                    bool flag = (citizen1.m_State & CitizenFlags.Commuter) != 0;
-                    int num1 = (citizen1.m_State & CitizenFlags.Tourist) != 0 ? 1 : 0;
+                    bool flag1 = (citizen1.m_State & CitizenFlags.Commuter) != 0;
+                    bool flag2 = (citizen1.m_State & CitizenFlags.Tourist) != 0;
                     citizen1.m_PseudoRandom = (ushort)(random.NextUInt() % 65536U);
                     citizen1.m_Health = (byte)(40 + random.NextInt(20));
                     citizen1.m_WellBeing = (byte)(40 + random.NextInt(20));
-                    citizen1.m_LeisureCounter = num1 == 0 ? (byte)(random.NextInt(92) + 128) : (byte)random.NextInt(128);
+                    citizen1.m_LeisureCounter = !flag2 ? (byte)(random.NextInt(92) + 128 /*0x80*/) : (byte)random.NextInt(128 /*0x80*/);
                     if (random.NextBool())
                         citizen1.m_State |= CitizenFlags.Male;
                     Entity prefabFromCitizen = CitizenUtils.GetCitizenPrefabFromCitizen(this.m_CitizenPrefabs, citizen1, this.m_CitizenDatas, random);
@@ -339,6 +341,9 @@ namespace RealLife.Systems
 
                     citizen1.SetEducationLevel(random.NextInt(int2.x, int2.y));
 
+                    bool flag3 = (citizen1.m_State & (CitizenFlags.AgeBit1 | CitizenFlags.AgeBit2)) != 0;
+                    this.m_BicycleOwners.SetComponentEnabled(entity1, ((flag1 ? 0 : (!flag2 ? 1 : 0)) & (flag3 ? 1 : 0)) != 0);
+
                     //Mod.log.Info($"Citizen {entity1} initialized with age: {citizen1.GetAge()}, education: {citizen1.GetEducationLevel()}, birth day: {citizen1.m_BirthDay}, state: {citizen1.m_State}");
                     citizen1.m_BirthDay = (short)(day - num2);
                     
@@ -368,6 +373,7 @@ namespace RealLife.Systems
             public ComponentLookup<CitizenData> __Game_Prefabs_CitizenData_RO_ComponentLookup;
             public ComponentLookup<Arrived> __Game_Citizens_Arrived_RW_ComponentLookup;
             public ComponentLookup<CarKeeper> __Game_Citizens_CarKeeper_RW_ComponentLookup;
+            public ComponentLookup<BicycleOwner> __Game_Citizens_BicycleOwner_RW_ComponentLookup;
             public ComponentLookup<HasJobSeeker> __Game_Agents_HasJobSeeker_RW_ComponentLookup;
             public ComponentLookup<PropertySeeker> __Game_Agents_PropertySeeker_RW_ComponentLookup;
             public ComponentLookup<MailSender> __Game_Citizens_MailSender_RW_ComponentLookup;
@@ -383,6 +389,7 @@ namespace RealLife.Systems
                 this.__Game_Prefabs_CitizenData_RO_ComponentLookup = state.GetComponentLookup<CitizenData>(true);
                 this.__Game_Citizens_Arrived_RW_ComponentLookup = state.GetComponentLookup<Arrived>();
                 this.__Game_Citizens_CarKeeper_RW_ComponentLookup = state.GetComponentLookup<CarKeeper>();
+                this.__Game_Citizens_BicycleOwner_RW_ComponentLookup = state.GetComponentLookup<BicycleOwner>();
                 this.__Game_Agents_HasJobSeeker_RW_ComponentLookup = state.GetComponentLookup<HasJobSeeker>();
                 this.__Game_Agents_PropertySeeker_RW_ComponentLookup = state.GetComponentLookup<PropertySeeker>();
                 this.__Game_Citizens_MailSender_RW_ComponentLookup = state.GetComponentLookup<MailSender>();
